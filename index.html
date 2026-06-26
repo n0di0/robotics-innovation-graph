@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Robotics Innovation Timeline - Interactive Graph</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        :root {
+            /* Color Palette - Robotic Aesthetic */
+            --color-primary-black: #0d0d0d;
+            --color-secondary-black: #1a1a1a;
+            --color-dark-grey: #2d2d2d;
+            --color-mid-grey: #404040;
+            --color-light-grey: #5a5a5a;
+            --color-very-light-grey: #7a7a7a;
+            --color-white: #f5f5f5;
+            --color-off-white: #e8e8e8;
+            
+            /* Accent Colors */
+            --color-gold: #d4af37;
+            --color-chrome: #e8e8e8;
+            --color-gold-dim: #c9a961;
+            --color-gold-dark: #9d8c3f;
+            
+            /* Category Colors */
+            --color-category-established: #4a7c7e;
+            --color-category-emerging: #d4af37;
+            --color-category-robotics: #c9a961;
+            
+            /* Functional Colors */
+            --color-highlight: #d4af37;
+            --color-path-past: #5a7c8f;
+            --color-path-future: #9d8c3f;
+            --color-link: #5a5a5a;
+            --color-link-highlight: #d4af37;
+            
+            /* UI Colors */
+            --color-bg-panel: #1a1a1a;
+            --color-border: #404040;
+            --color-text-primary: #f5f5f5;
+            --color-text-secondary: #a8a8a8;
+            --color-text-hover: #d4af37;
+            
+            /* Shadows & Effects */
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
+            --glow-gold: 0 0 20px rgba(212, 175, 55, 0.3);
+            --glow-gold-bright: 0 0 30px rgba(212, 175, 55, 0.5);
+            
+            /* Transitions */
+            --transition-fast: 150ms ease-in-out;
+            --transition-normal: 300ms ease-in-out;
+            --transition-slow: 500ms ease-in-out;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: var(--color-primary-black);
+            color: var(--color-text-primary);
+        }
+
+        body {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, var(--color-primary-black) 0%, var(--color-secondary-black) 100%);
+            position: relative;
+        }
+
+        .visualization-container {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(212, 175, 55, 0.03) 1px, rgba(212, 175, 55, 0.03) 2px),
+                repeating-linear-gradient(90deg, transparent, transparent 1px, rgba(212, 175, 55, 0.03) 1px, rgba(212, 175, 55, 0.03) 2px),
+                linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
+            background-size: 100px 100px, 100px 100px, 100% 100%;
+        }
+
+        #graph-svg {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            cursor: grab;
+        }
+
+        #graph-svg.dragging {
+            cursor: grabbing;
+        }
+
+        .link {
+            stroke: var(--color-link);
+            stroke-width: 1.5px;
+            fill: none;
+            opacity: 0.4;
+            transition: all var(--transition-fast);
+        }
+
+        .link.highlighted {
+            stroke: var(--color-link-highlight);
+            stroke-width: 2.5px;
+            opacity: 0.8;
+            filter: drop-shadow(0 0 4px var(--color-gold));
+        }
+
+        .link.faded {
+            opacity: 0.1;
+            stroke-width: 1px;
+        }
+
+        .node {
+            cursor: pointer;
+            transition: all var(--transition-normal);
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+        }
+
+        .node circle {
+            fill: var(--color-category-established);
+            stroke: var(--color-chrome);
+            stroke-width: 1.5px;
+            transition: all var(--transition-normal);
+        }
+
+        .node[data-category="emerging"] circle {
+            fill: var(--color-category-emerging);
+        }
+
+        .node[data-category="robotics"] circle {
+            fill: var(--color-category-robotics);
+        }
+
+        .node:hover circle {
+            stroke-width: 2.5px;
+            filter: drop-shadow(0 0 8px var(--color-gold));
+        }
+
+        .node.selected circle {
+            fill: var(--color-highlight);
+            stroke: var(--color-white);
+            stroke-width: 2.5px;
+            filter: drop-shadow(0 0 12px var(--color-gold));
+        }
+
+        .node.path-node circle {
+            stroke-width: 2px;
+            filter: drop-shadow(0 0 6px var(--color-gold));
+        }
+
+        .node.faded circle {
+            opacity: 0.2;
+            filter: none;
+        }
+
+        .node-label {
+            font-size: 11px;
+            font-weight: 500;
+            text-anchor: middle;
+            dominant-baseline: middle;
+            fill: var(--color-text-primary);
+            pointer-events: none;
+            text-shadow: 0 0 3px rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            transition: opacity var(--transition-normal);
+        }
+
+        .node:hover .node-label,
+        .node.selected .node-label {
+            opacity: 1;
+        }
+
+        .legend {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(26, 26, 26, 0.95);
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 16px;
+            width: 220px;
+            font-size: 12px;
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(10px);
+            z-index: 10;
+        }
+
+        .legend h3 {
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--color-text-primary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            border: 1px solid var(--color-chrome);
+            flex-shrink: 0;
+        }
+
+        .legend-item span {
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+
+        .legend hr {
+            border: none;
+            border-top: 1px solid var(--color-border);
+            margin: 12px 0;
+        }
+
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .control-btn {
+            background: rgba(26, 26, 26, 0.95);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-primary);
+            padding: 10px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            transition: all var(--transition-fast);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-md);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .control-btn:hover {
+            background: rgba(26, 26, 26, 1);
+            border-color: var(--color-gold);
+            color: var(--color-gold);
+            box-shadow: var(--shadow-lg), var(--glow-gold);
+        }
+
+        .loading-indicator {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .loading-indicator.hidden {
+            display: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 2px solid var(--color-border);
+            border-top-color: var(--color-gold);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-indicator p {
+            color: var(--color-text-secondary);
+            font-size: 14px;
+        }
+
+        .tooltip {
+            position: fixed;
+            background: rgba(26, 26, 26, 0.98);
+            border: 1px solid var(--color-gold);
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-size: 12px;
+            color: var(--color-text-primary);
+            pointer-events: none;
+            display: none;
+            z-index: 1000;
+            box-shadow: var(--shadow-lg), var(--glow-gold);
+            backdrop-filter: blur(10px);
+            max-width: 300px;
+        }
+
+        .tooltip.visible {
+            display: block;
+        }
+
+        .side-panel {
+            width: 380px;
+            height: 100%;
+            background: linear-gradient(180deg, var(--color-secondary-black) 0%, var(--color-dark-grey) 100%);
+            border-left: 1px solid var(--color-border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            right: 0;
+            top: 0;
+            transform: translateX(380px);
+            transition: transform var(--transition-normal);
+            z-index: 20;
+            box-shadow: -4px 0 16px rgba(0, 0, 0, 0.5);
+        }
+
+        .side-panel.open {
+            transform: translateX(0);
+        }
+
+        .panel-header {
+            padding: 20px 16px;
+            border-bottom: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .panel-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--color-text-primary);
+            flex: 1;
+            line-height: 1.3;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--color-text-secondary);
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            transition: all var(--transition-fast);
+            flex-shrink: 0;
+        }
+
+        .close-btn:hover {
+            background: rgba(212, 175, 55, 0.1);
+            color: var(--color-gold);
+        }
+
+        .panel-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 16px;
+        }
+
+        .panel-section {
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.1);
+        }
+
+        .panel-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .panel-section h3 {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--color-gold);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .section-content {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--color-text-secondary);
+        }
+
+        .section-list {
+            list-style: none;
+        }
+
+        .section-list li {
+            padding: 6px 0;
+            padding-left: 16px;
+            position: relative;
+            font-size: 12px;
+            color: var(--color-text-secondary);
+        }
+
+        .section-list li:before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--color-gold);
+        }
+
+        .panel-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .panel-content::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .panel-content::-webkit-scrollbar-thumb {
+            background: var(--color-mid-grey);
+            border-radius: 4px;
+        }
+
+        .panel-content::-webkit-scrollbar-thumb:hover {
+            background: var(--color-light-grey);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="visualization-container">
+            <svg id="graph-svg" class="graph-svg"></svg>
+            
+            <div class="loading-indicator" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>Loading innovation graph...</p>
+            </div>
+            
+            <div class="legend">
+                <h3>Categories</h3>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #4a7c7e;"></div>
+                    <span>Established Innovation</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #d4af37;"></div>
+                    <span>Emerging Technology</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #c9a961;"></div>
+                    <span>Core Robotics</span>
+                </div>
+                <hr />
+                <h3>Timeline</h3>
+                <p style="font-size: 11px; color: var(--color-text-secondary); font-style: italic;">←Past | Present | Future→</p>
+            </div>
+            
+            <div class="controls">
+                <button id="resetBtn" class="control-btn" title="Reset view">
+                    <span>⟲ Reset</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="side-panel" id="sidePanel">
+            <div class="panel-header">
+                <h2 id="nodeName">Select a node to explore</h2>
+                <button class="close-btn" id="closePanelBtn">×</button>
+            </div>
+            
+            <div class="panel-content" id="panelContent">
+                <div style="text-align: center;">
+                    <p>Click on any node in the graph to view detailed information, including:</p>
+                    <ul style="list-style: none; margin-top: 12px; text-align: left; background: rgba(212, 175, 55, 0.05); border-left: 2px solid var(--color-gold); padding: 12px 12px 12px 16px; border-radius: 4px; font-size: 12px;">
+                        <li style="margin-bottom: 6px; color: var(--color-text-secondary);">Timeline and year mentions</li>
+                        <li style="margin-bottom: 6px; color: var(--color-text-secondary);">Foundational concepts (predecessors)</li>
+                        <li style="margin-bottom: 6px; color: var(--color-text-secondary);">Future applications and trajectories</li>
+                        <li style="margin-bottom: 6px; color: var(--color-text-secondary);">Impact assessment and criticality</li>
+                        <li style="color: var(--color-text-secondary);">Convergence with other technologies</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="tooltip" id="tooltip"></div>
+
+    <script>
+        // Graph visualization class
+        class RoboticsGraph {
+            constructor(graphData) {
+                this.graphData = graphData;
+                this.svg = null;
+                this.simulation = null;
+                this.selectedNode = null;
+                this.highlightedNodes = new Set();
+                this.highlightedLinks = new Set();
+                this.width = window.innerWidth;
+                this.height = window.innerHeight;
+                
+                this.init();
+            }
+
+            init() {
+                this.setupSVG();
+                this.createGraph();
+                this.setupInteractions();
+                this.hideLoading();
+            }
+
+            setupSVG() {
+                const container = document.querySelector('.visualization-container');
+                this.width = container.clientWidth;
+                this.height = container.clientHeight;
+                
+                this.svg = d3.select('#graph-svg')
+                    .attr('viewBox', [0, 0, this.width, this.height])
+                    .attr('width', '100%')
+                    .attr('height', '100%');
+            }
+
+            createGraph() {
+                const nodes = this.graphData.nodes.map(d => ({ ...d }));
+                const links = this.graphData.links.map(d => ({
+                    ...d,
+                    source: d.source,
+                    target: d.target
+                }));
+
+                console.log(`Creating graph with ${nodes.length} nodes and ${links.length} links`);
+
+                this.simulation = d3.forceSimulation(nodes)
+                    .force('link', d3.forceLink(links)
+                        .id(d => d.id)
+                        .distance(d => 150)
+                        .strength(d => 0.9)
+                    )
+                    .force('charge', d3.forceManyBody()
+                        .strength(-450)
+                        .distanceMax(700)
+                    )
+                    .force('x', d3.forceX()
+                        .x(d => (d.x_position / 100) * this.width)
+                        .strength(0.06)
+                    )
+                    .force('y', d3.forceY()
+                        .y(this.height / 2)
+                        .strength(0.02)
+                    )
+                    .force('collide', d3.forceCollide()
+                        .radius(d => 25 + (d.relationships_count / 30))
+                        .strength(0.9)
+                    );
+
+                const container = this.svg.append('g').attr('class', 'graph-container');
+
+                const linkSelection = container.append('g')
+                    .attr('class', 'links')
+                    .selectAll('line')
+                    .data(links, (d, i) => `${d.source}-${d.target}-${i}`)
+                    .join('line')
+                    .attr('class', 'link')
+                    .attr('stroke-width', d => d.relation === 'builds_on' ? 2.5 : 1.5)
+                    .attr('stroke', 'var(--color-link)');
+
+                this.linkElements = linkSelection;
+
+                const nodeGroup = container.append('g')
+                    .attr('class', 'nodes')
+                    .selectAll('g')
+                    .data(nodes, d => d.id)
+                    .join('g')
+                    .attr('class', d => `node`)
+                    .attr('data-category', d => d.category)
+                    .attr('data-node-id', d => d.id)
+                    .call(this.drag(this.simulation));
+
+                nodeGroup.append('circle')
+                    .attr('r', d => 25 + (d.relationships_count / 20))
+                    .attr('fill', d => this.getCategoryColor(d.category));
+
+                nodeGroup.append('text')
+                    .attr('class', 'node-label')
+                    .attr('dy', '.3em')
+                    .text(d => d.name.length > 20 ? d.name.substring(0, 17) + '...' : d.name);
+
+                this.nodeElements = nodeGroup;
+
+                this.simulation.on('tick', () => {
+                    linkSelection
+                        .attr('x1', d => typeof d.source === 'object' ? d.source.x : 0)
+                        .attr('y1', d => typeof d.source === 'object' ? d.source.y : 0)
+                        .attr('x2', d => typeof d.target === 'object' ? d.target.x : 0)
+                        .attr('y2', d => typeof d.target === 'object' ? d.target.y : 0);
+
+                    nodeGroup
+                        .attr('transform', d => `translate(${d.x || 0},${d.y || 0})`);
+                });
+
+                const zoom = d3.zoom()
+                    .on('zoom', (event) => {
+                        container.attr('transform', event.transform);
+                    });
+
+                this.svg.call(zoom);
+
+                this.svg.on('dblclick.zoom', () => {
+                    this.svg.transition()
+                        .duration(750)
+                        .call(zoom.transform, d3.zoomIdentity.translate(0, 0));
+                });
+            }
+
+            setupInteractions() {
+                this.nodeElements.on('click', (event, d) => {
+                    event.stopPropagation();
+                    this.selectNode(d);
+                }).on('mouseenter', (event, d) => {
+                    const message = `${d.name}\n${d.category.toUpperCase()}`;
+                    const rect = event.target.getBoundingClientRect();
+                    this.showTooltip(rect.right + 10, rect.top, message);
+                }).on('mouseleave', () => {
+                    this.hideTooltip();
+                });
+
+                this.svg.on('click', () => {
+                    if (this.selectedNode) {
+                        this.deselectNode();
+                    }
+                });
+
+                document.getElementById('resetBtn').addEventListener('click', () => this.resetView());
+                document.getElementById('closePanelBtn').addEventListener('click', () => this.deselectNode());
+
+                window.addEventListener('resize', () => this.handleResize());
+            }
+
+            selectNode(nodeData) {
+                if (this.selectedNode) {
+                    this.deselectNode();
+                }
+
+                this.selectedNode = nodeData;
+
+                this.nodeElements.classed('selected', d => d.id === nodeData.id);
+                this.nodeElements.classed('faded', d => d.id !== nodeData.id);
+                this.linkElements.classed('faded', true);
+
+                this.highlightPaths(nodeData);
+                this.showNodePanel(nodeData);
+            }
+
+            deselectNode() {
+                this.selectedNode = null;
+                this.highlightedNodes.clear();
+                this.highlightedLinks.clear();
+
+                this.nodeElements.classed('selected', false);
+                this.nodeElements.classed('faded', false);
+                this.nodeElements.classed('path-node', false);
+                this.linkElements.classed('faded', false);
+                this.linkElements.classed('highlighted', false);
+
+                document.getElementById('sidePanel').classList.remove('open');
+            }
+
+            highlightPaths(nodeData) {
+                const nodeIndex = this.graphData.nodes.findIndex(n => n.id === nodeData.id);
+                if (nodeIndex === -1) return;
+
+                const visited = new Set();
+                const queue = [nodeIndex];
+
+                // BFS to find connected nodes
+                while (queue.length > 0) {
+                    const current = queue.shift();
+                    if (visited.has(current)) continue;
+                    visited.add(current);
+
+                    // Find connections through links
+                    this.graphData.links.forEach(link => {
+                        if (link.source === current && !visited.has(link.target)) {
+                            queue.push(link.target);
+                            this.highlightedNodes.add(link.target);
+                        }
+                        if (link.target === current && !visited.has(link.source)) {
+                            queue.push(link.source);
+                            this.highlightedNodes.add(link.source);
+                        }
+                    });
+                }
+
+                this.nodeElements
+                    .classed('path-node', d => this.highlightedNodes.has(d.id))
+                    .classed('faded', d => d.id !== nodeData.id && !this.highlightedNodes.has(d.id));
+
+                this.linkElements
+                    .classed('highlighted', link => {
+                        const sourceHighlighted = this.highlightedNodes.has(link.source) || link.source === nodeData.id;
+                        const targetHighlighted = this.highlightedNodes.has(link.target) || link.target === nodeData.id;
+                        return sourceHighlighted && targetHighlighted;
+                    })
+                    .classed('faded', link => {
+                        const sourceHighlighted = this.highlightedNodes.has(link.source) || link.source === nodeData.id;
+                        const targetHighlighted = this.highlightedNodes.has(link.target) || link.target === nodeData.id;
+                        return !(sourceHighlighted && targetHighlighted);
+                    });
+            }
+
+            showNodePanel(nodeData) {
+                const panel = document.getElementById('sidePanel');
+                const nodeNameElem = document.getElementById('nodeName');
+                const panelContent = document.getElementById('panelContent');
+
+                nodeNameElem.textContent = nodeData.name;
+
+                let html = '';
+                
+                html += `<div class="panel-section">
+                    <h3>Node Information</h3>
+                    <div class="section-content">
+                        <strong>Category:</strong> ${nodeData.category.toUpperCase()}<br/>
+                        <strong>Timeline:</strong> ${nodeData.year_mentions ? nodeData.year_mentions.join(', ') : 'Unknown'}<br/>
+                        <strong>Connections:</strong> ${nodeData.relationships_count || 0}<br/>
+                        ${nodeData.criticality_level ? `<strong>Criticality:</strong> ${nodeData.criticality_level.toUpperCase()}<br/>` : ''}
+                    </div>
+                </div>`;
+
+                const predictions = nodeData.predictions;
+                if (predictions && predictions.predecessors && predictions.predecessors.direct_predecessors) {
+                    html += `<div class="panel-section">
+                        <h3>Foundational Concepts</h3>
+                        <div class="section-content">
+                            <strong>Key Predecessors:</strong>
+                            <ul class="section-list">`;
+                    predictions.predecessors.direct_predecessors.slice(0, 5).forEach(pred => {
+                        html += `<li>${pred}</li>`;
+                    });
+                    html += `</ul></div></div>`;
+                }
+
+                if (predictions && predictions.forward_trajectory && predictions.forward_trajectory.emerging_applications) {
+                    html += `<div class="panel-section">
+                        <h3>Future Applications</h3>
+                        <div class="section-content">
+                            <strong>Emerging Applications:</strong>
+                            <ul class="section-list">`;
+                    predictions.forward_trajectory.emerging_applications.slice(0, 4).forEach(app => {
+                        html += `<li>${app}</li>`;
+                    });
+                    html += `</ul></div></div>`;
+                }
+
+                panelContent.innerHTML = html;
+                panel.classList.add('open');
+            }
+
+            drag(simulation) {
+                return d3.drag()
+                    .on('start', (event, d) => {
+                        if (!event.active) simulation.alphaTarget(0.3).restart();
+                        d.fx = d.x;
+                        d.fy = d.y;
+                    })
+                    .on('drag', (event, d) => {
+                        d.fx = event.x;
+                        d.fy = event.y;
+                    })
+                    .on('end', (event, d) => {
+                        if (!event.active) simulation.alphaTarget(0);
+                        d.fx = null;
+                        d.fy = null;
+                    });
+            }
+
+            getCategoryColor(category) {
+                const colors = {
+                    'established': '#4a7c7e',
+                    'emerging': '#d4af37',
+                    'robotics': '#c9a961',
+                };
+                return colors[category] || '#7a7a7a';
+            }
+
+            showTooltip(x, y, message) {
+                const tooltip = document.getElementById('tooltip');
+                tooltip.textContent = message;
+                tooltip.classList.add('visible');
+                tooltip.style.left = x + 'px';
+                tooltip.style.top = y + 'px';
+            }
+
+            hideTooltip() {
+                const tooltip = document.getElementById('tooltip');
+                tooltip.classList.remove('visible');
+            }
+
+            resetView() {
+                this.svg.transition()
+                    .duration(750)
+                    .call(d3.zoom().transform, d3.zoomIdentity.translate(0, 0));
+            }
+
+            handleResize() {
+                const container = document.querySelector('.visualization-container');
+                this.width = container.clientWidth;
+                this.height = container.clientHeight;
+
+                this.svg
+                    .attr('viewBox', [0, 0, this.width, this.height]);
+
+                if (this.simulation) {
+                    this.simulation
+                        .force('x', d3.forceX()
+                            .x(d => (d.x_position / 100) * this.width)
+                            .strength(0.06)
+                        )
+                        .force('y', d3.forceY()
+                            .y(this.height / 2)
+                            .strength(0.02)
+                        )
+                        .alpha(0.3)
+                        .restart();
+                }
+            }
+
+            hideLoading() {
+                const loader = document.getElementById('loadingIndicator');
+                if (loader) loader.classList.add('hidden');
+            }
+        }
+
+        // Embedded graph data - PLACEHOLDER (will be replaced with actual data)
+        const graphData = {
+            "nodes": [],
+            "links": [],
+            "metadata": {
+                "source": "Robotics Knowledge Graph",
+                "horizon": "2026-2036"
+            }
+        };
+
+        // Load actual data from GitHub
+        async function loadGraphData() {
+            try {
+                const response = await fetch('data.json');
+                const fullData = await response.json();
+                
+                // Process nodes
+                const nodes = [];
+                const nodeMap = {};
+                let id = 0;
+                
+                for (const [title, article] of Object.entries(fullData.articles || {})) {
+                    const predictions = fullData.predictions_index?.[title] || {};
+                    const categories = article.categories || [];
+                    
+                    let category = 'established';
+                    if (predictions.is_curated_forecast_priority) {
+                        category = 'emerging';
+                    } else if (title.toLowerCase() === 'robotics') {
+                        category = 'robotics';
+                    }
+                    
+                    const yearMentions = article.year_mentions || [];
+                    let xPosition = 50;
+                    if (yearMentions.length > 0) {
+                        const avg = (Math.min(...yearMentions) + Math.max(...yearMentions)) / 2;
+                        xPosition = ((avg - 1920) / (2036 - 1920)) * 100;
+                    }
+                    
+                    nodes.push({
+                        id: id,
+                        name: title,
+                        category: category,
+                        x_position: xPosition,
+                        year_mentions: yearMentions,
+                        relationships_count: article.relationships || 0,
+                        criticality_level: predictions.backward_analysis?.criticality_level || 'medium',
+                        predictions: {
+                            predecessors: predictions.predecessors || {},
+                            forward_trajectory: predictions.forward_trajectory || {},
+                            backward_analysis: predictions.backward_analysis || {}
+                        }
+                    });
+                    
+                    nodeMap[title] = id;
+                    id++;
+                }
+                
+                // Process links
+                const links = [];
+                const seen = new Set();
+                
+                (fullData.relationships || []).slice(0, 500).forEach(rel => {
+                    const sourceTitle = rel.source?.toString().replace(/^./, c => c.toUpperCase());
+                    const targetTitle = rel.target?.toString().replace(/^./, c => c.toUpperCase());
+                    
+                    let sourceId = null;
+                    let targetId = null;
+                    
+                    if (sourceTitle && targetTitle) {
+                        for (const [title, idx] of Object.entries(nodeMap)) {
+                            if (sourceTitle.toLowerCase() === title.toLowerCase()) sourceId = idx;
+                            if (targetTitle.toLowerCase() === title.toLowerCase()) targetId = idx;
+                        }
+                        
+                        if (sourceId !== null && targetId !== null) {
+                            const key = `${Math.min(sourceId, targetId)}-${Math.max(sourceId, targetId)}`;
+                            if (!seen.has(key)) {
+                                links.push({
+                                    source: sourceId,
+                                    target: targetId,
+                                    relation: rel.relation || 'connects'
+                                });
+                                seen.add(key);
+                            }
+                        }
+                    }
+                });
+                
+                graphData.nodes = nodes;
+                graphData.links = links;
+                graphData.metadata = fullData.metadata;
+                
+                console.log(`Loaded ${nodes.length} nodes and ${links.length} links`);
+                new RoboticsGraph(graphData);
+                
+            } catch (error) {
+                console.error('Failed to load graph data:', error);
+                document.getElementById('loadingIndicator').innerHTML = '<p style="color: red;">Failed to load graph data. Make sure data.json is in the same folder as index.html</p>';
+            }
+        }
+
+        // Load data when page loads
+        window.addEventListener('DOMContentLoaded', loadGraphData);
+    </script>
+</body>
+</html>
