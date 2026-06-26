@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emergent Robotics — Long Form</title>
+  <style>
+    :root{
+      --bg:#0b0d10;
+      --panel:#11151b;
+      --panel2:#151b22;
+      --text:#eef2f6;
+      --muted:#9aa6b2;
+      --line:rgba(255,255,255,.08);
+      --accent:#d4af37;
+      --accent2:#7f8cff;
+      --shadow:0 14px 40px rgba(0,0,0,.38);
+      --chip:rgba(255,255,255,.06);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:radial-gradient(circle at top,#141922 0%,#0b0d10 62%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.6}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1040px;margin:0 auto;padding:28px 20px 64px}
+    .topbar{
+      display:flex;justify-content:space-between;align-items:center;gap:16px;
+      padding:14px 18px;border:1px solid var(--line);border-radius:18px;
+      background:rgba(10,12,15,.72);backdrop-filter:blur(10px);box-shadow:var(--shadow);
+      position:sticky;top:18px;z-index:10
+    }
+    .brand{display:flex;flex-direction:column;gap:2px}
+    .brand h1{margin:0;font-size:20px;line-height:1.2}
+    .brand p{margin:0;color:var(--muted);font-size:13px}
+    .nav{display:flex;gap:10px;flex-wrap:wrap}
+    .pill{
+      padding:9px 14px;border-radius:999px;border:1px solid var(--line);
+      background:rgba(255,255,255,.04);font-size:13px;white-space:nowrap
+    }
+    .pill.active{border-color:rgba(127,140,255,.45);background:rgba(127,140,255,.16)}
+    .hero{
+      margin:28px 0 22px;padding:28px;border:1px solid var(--line);border-radius:24px;
+      background:linear-gradient(180deg,rgba(17,21,27,.96),rgba(21,27,34,.96));box-shadow:var(--shadow)
+    }
+    .hero h2{margin:0 0 10px;font-size:34px;line-height:1.12}
+    .hero p{margin:0;color:var(--muted);max-width:78ch}
+    .callout{
+      margin-top:18px;padding:14px 16px;border-left:4px solid var(--accent);background:rgba(212,175,55,.08);
+      border-radius:14px;color:var(--text)
+    }
+    .section-title{
+      margin:28px 0 12px;font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:#cfd6df
+    }
+    .grid{display:grid;grid-template-columns:1fr;gap:16px}
+    .card{
+      border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,var(--panel),var(--panel2));
+      box-shadow:var(--shadow);padding:22px
+    }
+    .card-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
+    .title{display:flex;flex-direction:column;gap:4px}
+    .title h3{margin:0;font-size:24px;line-height:1.15}
+    .title .sub{color:var(--muted);font-size:13px}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{
+      padding:7px 10px;border-radius:999px;background:var(--chip);border:1px solid var(--line);
+      color:#dbe3ea;font-size:12px;white-space:nowrap
+    }
+    .accent{border-color:rgba(212,175,55,.35);background:rgba(212,175,55,.10)}
+    .row{display:grid;grid-template-columns:180px 1fr;gap:10px 18px;margin-top:18px}
+    .k{color:var(--muted);font-size:13px;text-transform:uppercase;letter-spacing:.06em}
+    .v{font-size:14px;color:var(--text)}
+    .v p{margin:0 0 10px}
+    .v p:last-child{margin-bottom:0}
+    .trend{
+      margin-top:18px;padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.03)
+    }
+    .trend strong{display:block;margin-bottom:6px}
+    .note{
+      margin-top:18px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px
+    }
+    .footer{
+      margin-top:28px;color:var(--muted);font-size:13px;text-align:center
+    }
+    @media (max-width:720px){
+      .topbar{position:static}
+      .hero h2{font-size:28px}
+      .row{grid-template-columns:1fr}
+      .card-head{flex-direction:column}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="topbar">
+      <div class="brand">
+        <h1>Emergent Robotics</h1>
+        <p>Long-form view of the most important innovations and trends.</p>
+      </div>
+      <nav class="nav">
+        <a class="pill" href="robotics_knowledge_graph_clean.html">Main graph</a>
+        <a class="pill active" href="robotics_emergent_list.html">Emergent list</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <h2>Stacked cards for the most emergent technologies</h2>
+      <p>
+        This page is designed to be read by scrolling. Each card shows an innovation, its trend stage,
+        readiness, forecast, and the main bottlenecks in a format that is easy to scan like a blog post.
+      </p>
+      <div class="callout">
+        Most emergent items are grouped here to keep the page readable: low-readiness, high-forecast,
+        bottleneck-heavy technologies with strong future potential.
+      </div>
+    </section>
+
+    <div class="section-title">Top emergent technologies</div>
+
+    <main class="grid">
+      <article class="card">
+        <div class="card-head">
+          <div class="title">
+            <h3>Starcloud</h3>
+            <div class="sub">Infrastructure • 2026 • Innovation Trigger</div>
+          </div>
+          <div class="chips">
+            <span class="chip accent">Readiness 12%</span>
+            <span class="chip">Forecast 0.994</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="k">Summary</div>
+          <div class="v">Nascent AI data-center concept for robotics workloads.</div>
+
+          <div class="k">Bottleneck</div>
+          <div class="v">Compute and telemetry bottlenecks dominate.</div>
+
+          <div class="k">Why it matters</div>
+          <div class="v">This sits at the infrastructure layer, where robotics training, orchestration, and fleet learning depend on scale and standardization.</div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div class="title">
+            <h3>Hyperscaler</h3>
+            <div class="sub">Infrastructure • 2026 • Innovation Trigger</div>
+          </div>
+          <div class="chips">
+            <span class="chip accent">Readiness 28%</span>
+            <span class="chip">Forecast 0.994</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="k">Summary</div>
+          <div class="v">Cloud-scale infrastructure used for robotics training and fleet learning.</div>
+
+          <div class="k">Bottleneck</div>
+          <div class="v">Latency and API standardization remain key blockers.</div>
+
+          <div class="k">Why it matters</div>
+          <div class="v">This is one of the clearest examples of robotics moving toward hybrid edge-cloud architectures instead of fully local systems.</div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div class="title">
+            <h3>Pre-bioprinting</h3>
+            <div class="sub">Biofabrication • 2021 • Innovation Trigger</div>
+          </div>
+          <div class="chips">
+            <span class="chip accent">Readiness 18%</span>
+            <span class="chip">Forecast 0.959</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="k">Summary</div>
+          <div class="v">Automated preparation steps before bioprinting.</div>
+
+          <div class="k">Bottleneck</div>
+          <div class="v">Sterility and workflow automation are the main gaps.</div>
+
+          <div class="k">Why it matters</div>
+          <div class="v">The upstream pipeline is often more important than the printer itself because repeatable preparation determines downstream quality.</div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div class="title">
+            <h3>Bioinks</h3>
+            <div class="sub">Materials • 2021 • Innovation Trigger</div>
+          </div>
+          <div class="chips">
+            <span class="chip accent">Readiness 22%</span>
+            <span class="chip">Forecast 0.959</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="k">Summary</div>
+          <div class="v">Printable biological materials used in bioprinting and biohybrid systems.</div>
+
+          <div class="k">Bottleneck</div>
+          <div class="v">Mechanical-property tuning is still a bottleneck.</div>
+
+          <div class="k">Why it matters</div>
+          <div class="v">Material behavior controls whether biological fabrication can move from laboratory proof-of-concept to usable robotic components.</div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div class="title">
+            <h3>Bioprinting</h3>
+            <div class="sub">Fabrication • 2021 • Innovation Trigger</div>
+          </div>
+          <div class="chips">
+            <span class="chip accent">Readiness 22%</span>
+            <span class="chip">Forecast 0.959</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="k">Summary</div>
+          <div class="v">Robotic printing of biological structures and tissues.</div>
+
+          <div class="k">Bottleneck</div>
+          <div class="v">Closed-loop sensing is still early.</div>
+
+          <div class="k">Why it matters</div>
+          <div class="v">This area is promising, but practical deployment still depends on sensing, sterility, and reproducibility working together.</div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div class="title">
+            <h3>Autonomous self-assembly</h3>
+            <div class="sub">Fabrication • 2021 • Innovation Trigger</div>
+          </div>
+          <div class="chips">
+            <span class="chip accent">Readiness 18%</span>
+            <span class="chip">Forecast 0.959</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="k">Summary</div>
+          <div class="v">Systems that assemble themselves with minimal external control.</div>
+
+          <div class="k">Bottleneck</div>
+          <div class="v">Energy autonomy and smart materials are major blockers.</div>
+
+          <div class="k">Why it matters</div>
+          <div class="v">The concept is strong, but the physical substrate still needs to mature before it becomes broadly practical.</div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div class="title">
+            <h3>Biomimicry</h3>
+            <div class="sub">Design • 2021 • Peak of Inflated Expectations</div>
+          </div>
+          <div class="chips">
+            <span class="chip accent">Readiness 30%</span>
+            <span class="chip">Forecast 0.945</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="k">Summary</div>
+          <div class="v">Nature-inspired design strategy for soft and adaptive robots.</div>
+
+          <div class="k">Bottleneck</div>
+          <div class="v">A strong enabler, but still early in deployment.</div>
+
+          <div class="k">Why it matters</div>
+          <div class="v">This is less of a product and more of a design logic that shapes many next-generation robotic systems.</div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div class="title">
+            <h3>Multiphoton lithography</h3>
+            <div class="sub">Manufacturing • 2024 • Innovation Trigger</div>
+          </div>
+          <div class="chips">
+            <span class="chip accent">Readiness 26%</span>
+            <span class="chip">Forecast 0.941</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="k">Summary</div>
+          <div class="v">High-resolution additive technique for micro-scale structures.</div>
+
+          <div class="k">Bottleneck</div>
+          <div class="v">Precision is strong; throughput and cost remain concerns.</div>
+
+          <div class="k">Why it matters</div>
+          <div class="v">This matters for tiny, highly detailed structures where traditional manufacturing is too coarse or slow.</div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head">
+          <div class="title">
+            <h3>Microstereolithography</h3>
+            <div class="sub">Manufacturing • 2024 • Innovation Trigger</div>
+          </div>
+          <div class="chips">
+            <span class="chip accent">Readiness 24%</span>
+            <span class="chip">Forecast 0.941</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="k">Summary</div>
+          <div class="v">Micro-scale photopolymer printing for precision components.</div>
+
+          <div class="k">Bottleneck</div>
+          <div class="v">Useful for prototypes, not yet broad production.</div>
+
+          <div class="k">Why it matters</div>
+          <div class="v">It supports the long tail of precision robotics and fabrication work that needs fine structures and repeatability.</div>
+        </div>
+      </article>
+    </main>
+
+    <div class="footer">
+      Scroll down to explore each innovation in order of importance and emergence.
+    </div>
+  </div>
+</body>
+</html>
