@@ -414,23 +414,21 @@
         </div>
     </div>
 
+    <script src="robotics_data.js"></script>
     <script>
         // Global data container
-        let ROBOTICS_DATA = null;
         let network = null;
 
-        async function loadData() {
+        function loadData() {
             try {
-                const response = await fetch('robotics_data.json');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                if (typeof ROBOTICS_DATA !== 'undefined' && ROBOTICS_DATA !== null) {
+                    initializeVisualization();
+                } else {
+                    throw new Error('ROBOTICS_DATA is not defined');
                 }
-                ROBOTICS_DATA = await response.json();
-                initializeVisualization();
             } catch (error) {
                 console.error('Error loading data:', error);
-                console.log('Tried to fetch: robotics_data.json from current directory');
-                document.getElementById('loading').innerHTML = '<div style="color: #c0c0c0; padding: 20px;">Error: Could not load robotics_data.json<br><br>Make sure both files are in the same folder:<br>• robotics_timeline.html<br>• robotics_data.json<br><br>Check browser console for details.</div>';
+                document.getElementById('loading').innerHTML = '<div style="color: #c0c0c0; padding: 20px;">Error: Could not load data<br><br>Make sure robotics_data.js is in the same folder<br><br>Check browser console for details.</div>';
             }
         }
 
