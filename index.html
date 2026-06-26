@@ -109,15 +109,395 @@ const NODES = [
     node_type: "company",
     description: "Robotics company known for dynamic bipedal systems and logistics-oriented robots.",
     parent: "1X Technologies"
+  }, {
+  id: "Acceleration",
+  label: "Acceleration",
+  cluster: "Core Physics",
+  yearSort: 1900,
+  node_type: "physics",
+  description: "Foundational kinematic quantity used throughout robotics motion analysis.",
+  parent: "Robotics"
+},
+{
+  id: "Angular acceleration",
+  label: "Angular acceleration",
+  cluster: "Core Physics",
+  yearSort: 1900,
+  node_type: "physics",
+  description: "Rate of change of angular velocity, important for robot joints and rotating bodies.",
+  parent: "Acceleration"
+},
+{
+  id: "Angular velocity",
+  label: "Angular velocity",
+  cluster: "Core Physics",
+  yearSort: 1900,
+  node_type: "physics",
+  description: "Rotational speed measure used in articulated motion and control.",
+  parent: "Acceleration"
+},
+{
+  id: "Angular momentum",
+  label: "Angular momentum",
+  cluster: "Core Physics",
+  yearSort: 1900,
+  node_type: "physics",
+  description: "Conserved rotational quantity relevant to balancing and manipulation dynamics.",
+  parent: "Acceleration"
+},
+{
+  id: "Accelerometer",
+  label: "Accelerometer",
+  cluster: "Sensors",
+  yearSort: 1997,
+  node_type: "sensor",
+  description: "Sensor for measuring acceleration, widely used in mobile robots and stabilization systems.",
+  parent: "Acceleration"
+},
+{
+  id: "Appells equation of motion",
+  label: "Appell's equation of motion",
+  cluster: "Dynamics",
+  yearSort: 1900,
+  node_type: "math",
+  description: "Analytical mechanics formulation useful for constrained robotic dynamics.",
+  parent: "Acceleration"
+},
+{
+    id: "Analytical mechanics",
+    label: "Analytical mechanics",
+    cluster: "Foundation",
+    yearSort: 1900,
+    node_type: "math",
+    description: "Mechanics framework using generalized coordinates and variational principles.",
+    parent: "Robotics"
+  },
+  {
+    id: "Appells equation of motion",
+    label: "Appell's equation of motion",
+    cluster: "Foundation",
+    yearSort: 1900,
+    node_type: "math",
+    description: "Analytical mechanics formulation useful for constrained robotic dynamics.",
+    parent: "Robotics"
+  },
+  {
+    id: "Acceleration",
+    label: "Acceleration",
+    cluster: "Foundation",
+    yearSort: 1900,
+    node_type: "physics",
+    description: "Foundational kinematic quantity used throughout robotics motion analysis.",
+    parent: "Robotics"
+  },
+  {
+    id: "Angular acceleration",
+    label: "Angular acceleration",
+    cluster: "Foundation",
+    yearSort: 1900,
+    node_type: "physics",
+    description: "Rate of change of angular velocity, used in robot joints and rotation control.",
+    parent: "Acceleration"
+  },
+  {
+    id: "Angular displacement",
+    label: "Angular displacement",
+    cluster: "Foundation",
+    yearSort: 1900,
+    node_type: "physics",
+    description: "Rotation amount relative to an axis of rotation.",
+    parent: "Acceleration"
+  },
+  {
+    id: "Angular momentum",
+    label: "Angular momentum",
+    cluster: "Foundation",
+    yearSort: 1900,
+    node_type: "physics",
+    description: "Conserved rotational quantity relevant to balance and manipulation dynamics.",
+    parent: "Acceleration"
+  },
+  {
+    id: "Angular velocity",
+    label: "Angular velocity",
+    cluster: "Foundation",
+    yearSort: 1900,
+    node_type: "physics",
+    description: "Rotational speed measure used in articulated motion and kinematics.",
+    parent: "Acceleration"
+  },
+  {
+    id: "Automatic control",
+    label: "Automatic control",
+    cluster: "Foundation",
+    yearSort: 1920,
+    node_type: "control",
+    description: "Feedback-based regulation of machines and processes.",
+    parent: "Robotics"
+  },
+  {
+    id: "Manufacturing",
+    label: "Manufacturing",
+    cluster: "Foundation",
+    yearSort: 1930,
+    node_type: "industry",
+    description: "Industrial production base that created the need for automation.",
+    parent: "Robotics"
+  },
+  {
+    id: "Manufacturing Engineering",
+    label: "Manufacturing Engineering",
+    cluster: "Foundation",
+    yearSort: 1940,
+    node_type: "engineering",
+    description: "Methods for designing and integrating production systems.",
+    parent: "Robotics"
+  },
+  {
+    id: "Actuator",
+    label: "Actuator",
+    cluster: "Foundation",
+    yearSort: 1950,
+    node_type: "component",
+    description: "Component that converts energy into movement.",
+    parent: "Robotics"
+  },
+  {
+    id: "Industrial automation",
+    label: "Industrial automation",
+    cluster: "Foundation",
+    yearSort: 1960,
+    node_type: "industry",
+    description: "Automation of manufacturing and production processes.",
+    parent: "Robotics"
+  },
+  {
+    id: "Industrial robot",
+    label: "Industrial robot",
+    cluster: "Foundation",
+    yearSort: 1960,
+    node_type: "robot",
+    description: "Robot designed for repetitive manufacturing tasks in structured environments.",
+    parent: "Robotics"
+  },
+  {
+    id: "Aerobot",
+    label: "Aerobot",
+    cluster: "Foundation",
+    yearSort: 1980,
+    node_type: "robot",
+    description: "Robotic platform for atmospheric or aerospace use.",
+    parent: "Robotics"
+  },
+  {
+    id: "AI winter",
+    label: "AI winter",
+    cluster: "Foundation",
+    yearSort: 1980,
+    node_type: "trend",
+    description: "Hype-cycle slowdown that pushed robotics toward practical incremental progress.",
+    parent: "Robotics"
+  },
+  {
+    id: "ABB",
+    label: "ABB",
+    cluster: "Industrial Robotics",
+    yearSort: 1988,
+    node_type: "company",
+    description: "Industrial automation and robotics company with deep electrical engineering roots.",
+    parent: "Robotics"
+  },
+  {
+    id: "Robotic sensors",
+    label: "Robotic sensors",
+    cluster: "Control and Sensing",
+    yearSort: 1990,
+    node_type: "sensor",
+    description: "Sensing systems that give robots information about motion and environment.",
+    parent: "Robotics"
+  },
+  {
+    id: "Accelerometer",
+    label: "Accelerometer",
+    cluster: "Control and Sensing",
+    yearSort: 1997,
+    node_type: "sensor",
+    description: "Sensor for measuring acceleration, used in stabilization and mobile robots.",
+    parent: "Acceleration"
+  },
+  {
+    id: "Adaptable robotics",
+    label: "Adaptable robotics",
+    cluster: "Industrial Robotics",
+    yearSort: 2001,
+    node_type: "robotics",
+    description: "Robotics designed to adapt to changing tasks and environments.",
+    parent: "Robotics"
+  },
+  {
+    id: "ASIMO",
+    label: "ASIMO",
+    cluster: "Humanoid and Embodied",
+    yearSort: 2000,
+    node_type: "robot",
+    description: "Honda humanoid robot demonstrating bipedal locomotion and navigation.",
+    parent: "Robotics"
+  },
+  {
+    id: "3D scanning",
+    label: "3D scanning",
+    cluster: "Present",
+    yearSort: 2000,
+    node_type: "sensor",
+    description: "Captures real-world geometry for robotic mapping and reconstruction.",
+    parent: "Robotics"
+  },
+  {
+    id: "3D printing",
+    label: "3D printing",
+    cluster: "Present",
+    yearSort: 2000,
+    node_type: "manufacturing",
+    description: "Additive manufacturing that enables rapid prototyping and custom robot parts.",
+    parent: "Robotics"
+  },
+  {
+    id: "Agility Robotics",
+    label: "Agility Robotics",
+    cluster: "Humanoid and Embodied",
+    yearSort: 2015,
+    node_type: "company",
+    description: "Robotics company known for dynamic bipedal systems and logistics-oriented robots.",
+    parent: "Robotics"
+  },
+  {
+    id: "Ai-Da",
+    label: "Ai-Da",
+    cluster: "Humanoid and Embodied",
+    yearSort: 2019,
+    node_type: "robot",
+    description: "Humanoid robot artist demonstrating expressive and creative robotic systems.",
+    parent: "Robotics"
+  },
+  {
+    id: "1X Technologies",
+    label: "1X Technologies",
+    cluster: "Humanoid and Embodied",
+    yearSort: 2026,
+    node_type: "company",
+    description: "Humanoid robotics company focused on embodied AI and bipedal systems.",
+    parent: "Robotics"
+  },
+  {
+    id: "AgiBot",
+    label: "AgiBot",
+    cluster: "Humanoid and Embodied",
+    yearSort: 2023,
+    node_type: "company",
+    description: "Robotics company focused on adaptable humanoid and service robots.",
+    parent: "Robotics"
+  },
+  {
+    id: "Atlas",
+    label: "Atlas",
+    cluster: "Future-facing",
+    yearSort: 2013,
+    node_type: "robot",
+    description: "Boston Dynamics humanoid robot platform used in advanced mobility research.",
+    parent: "Robotics"
+  },
+  {
+    id: "Atlas electric",
+    label: "Atlas electric",
+    cluster: "Future-facing",
+    yearSort: 2024,
+    node_type: "robot",
+    description: "Electric Atlas model designed for mobile manipulation and advanced autonomy.",
+    parent: "Robotics"
+  },
+  {
+    id: "Artificial general intelligence",
+    label: "Artificial general intelligence",
+    cluster: "Future-facing",
+    yearSort: 2024,
+    node_type: "trend",
+    description: "General intelligence concept that shapes future robotics expectations.",
+    parent: "Robotics"
+  },
+  {
+    id: "AI slop",
+    label: "AI slop",
+    cluster: "Future-facing",
+    yearSort: 2023,
+    node_type: "trend",
+    description: "Low-quality AI-generated content that can degrade information ecosystems.",
+    parent: "Robotics"
+  },
+  {
+    id: "Anthropocene",
+    label: "Anthropocene",
+    cluster: "Future-facing",
+    yearSort: 2030,
+    node_type: "trend",
+    description: "Human-shaped planetary context driving environmental robotics applications.",
+    parent: "Robotics"
+  },
+  {
+    id: "Autonomous mobile robot",
+    label: "Autonomous mobile robot",
+    cluster: "Future-facing",
+    yearSort: 2030,
+    node_type: "robot",
+    description: "Mobile robot that navigates and acts with higher autonomy in dynamic environments.",
+    parent: "Robotics"
   }
 ];
 
+
 const LINKS = [
+  { source: "Robotics", target: "Automatic control", relationship: "foundation" },
+  { source: "Robotics", target: "Manufacturing", relationship: "foundation" },
+  { source: "Robotics", target: "Manufacturing Engineering", relationship: "foundation" },
+  { source: "Robotics", target: "Actuator", relationship: "foundation" },
+  { source: "Robotics", target: "Industrial automation", relationship: "foundation" },
+  { source: "Robotics", target: "Industrial robot", relationship: "foundation" },
+  { source: "Robotics", target: "Aerobot", relationship: "foundation" },
+  { source: "Robotics", target: "AI winter", relationship: "historical context" },
+  { source: "Robotics", target: "ABB", relationship: "industrial robotics" },
+  { source: "Robotics", target: "Robotic sensors", relationship: "foundation" },
+  { source: "Robotics", target: "Accelerometer", relationship: "sensor basis" },
+  { source: "Robotics", target: "Adaptable robotics", relationship: "evolution" },
+  { source: "Robotics", target: "ASIMO", relationship: "humanoid robotics" },
+  { source: "Robotics", target: "3D scanning", relationship: "present technology" },
+  { source: "Robotics", target: "3D printing", relationship: "present technology" },
+  { source: "Robotics", target: "Agility Robotics", relationship: "humanoid robotics" },
+  { source: "Robotics", target: "Ai-Da", relationship: "humanoid robotics" },
+  { source: "Robotics", target: "1X Technologies", relationship: "humanoid robotics" },
+  { source: "Robotics", target: "AgiBot", relationship: "humanoid robotics" },
+  { source: "Robotics", target: "Atlas", relationship: "future" },
+  { source: "Robotics", target: "Atlas electric", relationship: "future" },
+  { source: "Robotics", target: "Artificial general intelligence", relationship: "future" },
+  { source: "Robotics", target: "AI slop", relationship: "future context" },
+  { source: "Robotics", target: "Anthropocene", relationship: "future context" },
+  { source: "Robotics", target: "Autonomous mobile robot", relationship: "future" },
+  { source: "Acceleration", target: "Angular acceleration", relationship: "related concept" },
+  { source: "Acceleration", target: "Angular displacement", relationship: "related concept" },
+  { source: "Acceleration", target: "Angular momentum", relationship: "related concept" },
+  { source: "Acceleration", target: "Angular velocity", relationship: "related concept" },
+  { source: "Acceleration", target: "Appells equation of motion", relationship: "dynamics formulation" },
+  { source: "Acceleration", target: "Analytical mechanics", relationship: "mechanics framework" },
+  { source: "Robotics", target: "Acceleration", relationship: "foundation" },
   { source: "Robotics", target: "1X Technologies", relationship: "parent" },
   { source: "Robotics", target: "ABB", relationship: "parent" },
   { source: "1X Technologies", target: "ASIMO", relationship: "influenced by" },
   { source: "1X Technologies", target: "Agility Robotics", relationship: "peer" },
-  { source: "ABB", target: "1X Technologies", relationship: "industrial foundation" }
+  { source: "ABB", target: "1X Technologies", relationship: "industrial foundation" },
+  { source: "Robotics", target: "Acceleration", relationship: "foundation" },
+{ source: "Acceleration", target: "Angular acceleration", relationship: "related concept" },
+{ source: "Acceleration", target: "Angular velocity", relationship: "related concept" },
+{ source: "Acceleration", target: "Angular momentum", relationship: "related concept" },
+{ source: "Acceleration", target: "Accelerometer", relationship: "sensor basis" },
+{ source: "Acceleration", target: "Appells equation of motion", relationship: "dynamics formulation" }
 ];
 
 const svg = d3.select("#svg");
