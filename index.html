@@ -64,8 +64,7 @@
 </div>
 
 <script>
-const NODES = [
-  {
+const NODES = [ {
     id: "Robotics",
     label: "Robotics",
     cluster: "Core",
@@ -450,11 +449,511 @@ const NODES = [
     node_type: "robot",
     description: "Mobile robot that navigates and acts with higher autonomy in dynamic environments.",
     parent: "Robotics"
+  }, const NODES = [
+  {
+    id: "Analytical mechanics",
+    label: "Analytical mechanics",
+    cluster: "Foundation",
+    yearSort: 1900,
+    node_type: "math",
+    description: "Mechanics framework using generalized coordinates and variational principles.",
+    parent: "Robotics"
+  },
+  {
+    id: "Appells equation of motion",
+    label: "Appell's equation of motion",
+    cluster: "Foundation",
+    yearSort: 1900,
+    node_type: "math",
+    description: "Analytical mechanics formulation useful for constrained robotic dynamics.",
+    parent: "Robotics"
+  },
+  {
+    id: "Acceleration",
+    label: "Acceleration",
+    cluster: "Foundation",
+    yearSort: 1900,
+    node_type: "physics",
+    description: "Foundational kinematic quantity used throughout robotics motion analysis.",
+    parent: "Robotics"
+  },
+  {
+    id: "Angular acceleration",
+    label: "Angular acceleration",
+    cluster: "Foundation",
+    yearSort: 1900,
+    node_type: "physics",
+    description: "Rate of change of angular velocity, used in robot joints and rotation control.",
+    parent: "Acceleration"
+  },
+  {
+    id: "Angular velocity",
+    label: "Angular velocity",
+    cluster: "Foundation",
+    yearSort: 1900,
+    node_type: "physics",
+    description: "Rotational speed measure used in articulated motion and kinematics.",
+    parent: "Acceleration"
+  },
+  {
+    id: "Angular momentum",
+    label: "Angular momentum",
+    cluster: "Foundation",
+    yearSort: 1900,
+    node_type: "physics",
+    description: "Conserved rotational quantity relevant to balance and manipulation dynamics.",
+    parent: "Acceleration"
+  },
+  {
+    id: "Angular displacement",
+    label: "Angular displacement",
+    cluster: "Foundation",
+    yearSort: 1900,
+    node_type: "physics",
+    description: "Rotation amount relative to an axis of rotation.",
+    parent: "Acceleration"
+  },
+  {
+    id: "Automatic control",
+    label: "Automatic control",
+    cluster: "Foundation",
+    yearSort: 1920,
+    node_type: "control",
+    description: "Feedback-based regulation of machines and processes.",
+    parent: "Robotics"
+  },
+  {
+    id: "Manufacturing",
+    label: "Manufacturing",
+    cluster: "Foundation",
+    yearSort: 1930,
+    node_type: "industry",
+    description: "Industrial production base that created the need for automation.",
+    parent: "Robotics"
+  },
+  {
+    id: "Manufacturing Engineering",
+    label: "Manufacturing Engineering",
+    cluster: "Foundation",
+    yearSort: 1940,
+    node_type: "engineering",
+    description: "Methods for designing and integrating production systems.",
+    parent: "Robotics"
+  },
+  {
+    id: "Actuator",
+    label: "Actuator",
+    cluster: "Foundation",
+    yearSort: 1950,
+    node_type: "component",
+    description: "Component that converts energy into movement.",
+    parent: "Robotics"
+  },
+  {
+    id: "Industrial automation",
+    label: "Industrial automation",
+    cluster: "Foundation",
+    yearSort: 1960,
+    node_type: "industry",
+    description: "Automation of manufacturing and production processes.",
+    parent: "Robotics"
+  },
+  {
+    id: "Industrial robot",
+    label: "Industrial robot",
+    cluster: "Foundation",
+    yearSort: 1960,
+    node_type: "robot",
+    description: "Robot designed for repetitive manufacturing tasks in structured environments.",
+    parent: "Robotics"
+  },
+  {
+    id: "Aerobot",
+    label: "Aerobot",
+    cluster: "Foundation",
+    yearSort: 1980,
+    node_type: "robot",
+    description: "Robotic platform for atmospheric or aerospace use.",
+    parent: "Robotics"
+  },
+  {
+    id: "AI winter",
+    label: "AI winter",
+    cluster: "Foundation",
+    yearSort: 1980,
+    node_type: "trend",
+    description: "Hype-cycle slowdown that pushed robotics toward practical incremental progress.",
+    parent: "Robotics"
+  },
+  {
+    id: "ABB",
+    label: "ABB",
+    cluster: "Industrial Robotics",
+    yearSort: 1988,
+    node_type: "company",
+    description: "Industrial automation and robotics company with deep electrical engineering roots.",
+    parent: "Robotics"
+  },
+  {
+    id: "Robotic sensors",
+    label: "Robotic sensors",
+    cluster: "Control and Sensing",
+    yearSort: 1990,
+    node_type: "sensor",
+    description: "Sensing systems that give robots information about motion and environment.",
+    parent: "Robotics"
+  },
+  {
+    id: "Accelerometer",
+    label: "Accelerometer",
+    cluster: "Control and Sensing",
+    yearSort: 1997,
+    node_type: "sensor",
+    description: "Sensor for measuring acceleration, used in stabilization and mobile robots.",
+    parent: "Acceleration"
+  },
+  {
+    id: "ASIMO",
+    label: "ASIMO",
+    cluster: "Humanoid and Embodied",
+    yearSort: 2000,
+    node_type: "robot",
+    description: "Honda humanoid robot demonstrating bipedal locomotion and navigation.",
+    parent: "Robotics"
+  },
+  {
+    id: "Adaptable robotics",
+    label: "Adaptable robotics",
+    cluster: "Industrial Robotics",
+    yearSort: 2001,
+    node_type: "robotics",
+    description: "Robotics designed to adapt to changing tasks and environments.",
+    parent: "Robotics"
+  },
+
+  {
+    id: "Bipedal robot",
+    label: "Bipedal robot",
+    cluster: "Present",
+    yearSort: 1960,
+    node_type: "robot",
+    description: "Humanoid-locomotion category that connects early walking robots to modern humanoids.",
+    parent: "Robotics"
+  },
+  {
+    id: "Ballbot",
+    label: "Ballbot",
+    cluster: "Present",
+    yearSort: 2001,
+    node_type: "robot",
+    description: "Self-balancing mobile robot platform used in dynamic control research.",
+    parent: "Robotics"
+  },
+  {
+    id: "Caterpillar tracks",
+    label: "Caterpillar tracks",
+    cluster: "Present",
+    yearSort: 1960,
+    node_type: "mobility",
+    description: "Locomotion system that supports off-road and rugged-terrain robots.",
+    parent: "Robotics"
+  },
+  {
+    id: "Canadarm",
+    label: "Canadarm",
+    cluster: "Present",
+    yearSort: 1981,
+    node_type: "robot",
+    description: "Space robotic arm that advanced remote manipulation in orbit.",
+    parent: "Robotics"
+  },
+  {
+    id: "Dextre",
+    label: "Dextre",
+    cluster: "Present",
+    yearSort: 2008,
+    node_type: "robot",
+    description: "Space station dexterous manipulator for detailed maintenance tasks.",
+    parent: "Robotics"
+  },
+  {
+    id: "EVE",
+    label: "EVE",
+    cluster: "Present",
+    yearSort: 2022,
+    node_type: "robot",
+    description: "1X wheeled humanoid platform for logistics, security, and healthcare tasks.",
+    parent: "Robotics"
+  },
+  {
+    id: "Epson micro helicopter robot",
+    label: "Epson micro helicopter robot",
+    cluster: "Present",
+    yearSort: 2002,
+    node_type: "robot",
+    description: "Small aerial robot showing the diversity of mobile robot form factors.",
+    parent: "Robotics"
+  },
+  {
+    id: "Furby",
+    label: "Furby",
+    cluster: "Present",
+    yearSort: 1998,
+    node_type: "robot",
+    description: "Interactive toy robot that helped popularize consumer-facing robotics.",
+    parent: "Robotics"
+  },
+  {
+    id: "Gyroscope",
+    label: "Gyroscope",
+    cluster: "Present",
+    yearSort: 1990,
+    node_type: "sensor",
+    description: "Rotational sensor used in balance, stabilization, and navigation systems.",
+    parent: "Acceleration"
+  },
+  {
+    id: "Human-robot interaction",
+    label: "Human-robot interaction",
+    cluster: "Present",
+    yearSort: 2010,
+    node_type: "interaction",
+    description: "Field focused on how people and robots communicate and coordinate safely.",
+    parent: "Robotics"
+  },
+  {
+    id: "Inverted pendulum dynamics",
+    label: "Inverted pendulum dynamics",
+    cluster: "Present",
+    yearSort: 2000,
+    node_type: "dynamics",
+    description: "Core balance model underlying many legged and balancing robots.",
+    parent: "Robotics"
+  },
+  {
+    id: "Joint torque",
+    label: "Joint torque",
+    cluster: "Present",
+    yearSort: 1990,
+    node_type: "physics",
+    description: "Rotational force at a joint that governs motion and load handling.",
+    parent: "Robotics"
+  },
+  {
+    id: "Kinematics",
+    label: "Kinematics",
+    cluster: "Present",
+    yearSort: 1920,
+    node_type: "physics",
+    description: "Study of motion that underpins robot position and trajectory analysis.",
+    parent: "Robotics"
+  },
+  {
+    id: "Lidar",
+    label: "Lidar",
+    cluster: "Present",
+    yearSort: 2000,
+    node_type: "sensor",
+    description: "Distance-sensing technology used in mapping, navigation, and obstacle detection.",
+    parent: "Robotics"
+  },
+
+  {
+    id: "Mechanical automata",
+    label: "Mechanical automata",
+    cluster: "Future-facing",
+    yearSort: 1900,
+    node_type: "robotics",
+    description: "Historical precursor showing programmable motion and early embodied machines.",
+    parent: "Robotics"
+  },
+  {
+    id: "Machine learning algorithms",
+    label: "Machine learning algorithms",
+    cluster: "Future-facing",
+    yearSort: 2015,
+    node_type: "ai",
+    description: "Learning methods that increasingly drive robot perception and control.",
+    parent: "Robotics"
+  },
+  {
+    id: "Multi-robot coordination",
+    label: "Multi-robot coordination",
+    cluster: "Future-facing",
+    yearSort: 2020,
+    node_type: "swarm",
+    description: "Coordinated behavior across multiple robots working toward shared goals.",
+    parent: "Robotics"
+  },
+  {
+    id: "Near-space robot",
+    label: "Near-space robot",
+    cluster: "Future-facing",
+    yearSort: 2030,
+    node_type: "robot",
+    description: "Robot designed for high-altitude and extreme-environment operation.",
+    parent: "Robotics"
+  },
+  {
+    id: "Open-world manipulation",
+    label: "Open-world manipulation",
+    cluster: "Future-facing",
+    yearSort: 2030,
+    node_type: "manipulation",
+    description: "Manipulation in unstructured, changing environments with incomplete prior knowledge.",
+    parent: "Robotics"
+  },
+  {
+    id: "Predictive maintenance",
+    label: "Predictive maintenance",
+    cluster: "Future-facing",
+    yearSort: 2025,
+    node_type: "operations",
+    description: "Robotics operations concept using telemetry to prevent failures before they occur.",
+    parent: "Robotics"
+  },
+  {
+    id: "QX",
+    label: "QX",
+    cluster: "Future-facing",
+    yearSort: 2009,
+    node_type: "robot",
+    description: "Telepresence robot showing remote-presence and service-robot evolution.",
+    parent: "Robotics"
+  },
+  {
+    id: "Real-time navigation",
+    label: "Real-time navigation",
+    cluster: "Future-facing",
+    yearSort: 2020,
+    node_type: "navigation",
+    description: "On-the-fly movement planning for dynamic and partially known environments.",
+    parent: "Robotics"
+  },
+  {
+    id: "Sensor fusion",
+    label: "Sensor fusion",
+    cluster: "Future-facing",
+    yearSort: 2010,
+    node_type: "perception",
+    description: "Combining multiple sensing modalities to improve robot understanding.",
+    parent: "Robotics"
+  },
+  {
+    id: "Teleoperation",
+    label: "Teleoperation",
+    cluster: "Future-facing",
+    yearSort: 2015,
+    node_type: "control",
+    description: "Remote control mode that bridges human oversight and robotic execution.",
+    parent: "Robotics"
+  },
+  {
+    id: "Universal robots",
+    label: "Universal robots",
+    cluster: "Future-facing",
+    yearSort: 2010,
+    node_type: "company",
+    description: "Collaborative robotics company associated with flexible industrial deployment.",
+    parent: "Robotics"
   }
 ];
 
 
-const LINKS = [
+const LINKS = [  { source: "Robotics", target: "Automatic control", relationship: "foundation" },
+ { source: "Robotics", target: "Automatic control", relationship: "foundation" },
+  { source: "Robotics", target: "Manufacturing", relationship: "foundation" },
+  { source: "Robotics", target: "Manufacturing Engineering", relationship: "foundation" },
+  { source: "Robotics", target: "Actuator", relationship: "foundation" },
+  { source: "Robotics", target: "Industrial automation", relationship: "foundation" },
+  { source: "Robotics", target: "Industrial robot", relationship: "foundation" },
+  { source: "Robotics", target: "Aerobot", relationship: "foundation" },
+  { source: "Robotics", target: "AI winter", relationship: "historical context" },
+  { source: "Robotics", target: "ABB", relationship: "industrial robotics" },
+  { source: "Robotics", target: "Robotic sensors", relationship: "foundation" },
+  { source: "Robotics", target: "Accelerometer", relationship: "sensor basis" },
+  { source: "Robotics", target: "Adaptable robotics", relationship: "evolution" },
+  { source: "Robotics", target: "ASIMO", relationship: "humanoid robotics" },
+
+  { source: "Robotics", target: "Bipedal robot", relationship: "mobility" },
+  { source: "Robotics", target: "Ballbot", relationship: "mobility" },
+  { source: "Robotics", target: "Caterpillar tracks", relationship: "locomotion" },
+  { source: "Robotics", target: "Canadarm", relationship: "manipulation" },
+  { source: "Robotics", target: "Dextre", relationship: "dexterous manipulation" },
+  { source: "Robotics", target: "EVE", relationship: "present humanoid" },
+  { source: "Robotics", target: "Epson micro helicopter robot", relationship: "mobile robotics" },
+  { source: "Robotics", target: "Furby", relationship: "consumer robotics" },
+  { source: "Robotics", target: "Gyroscope", relationship: "sensor basis" },
+  { source: "Robotics", target: "Human-robot interaction", relationship: "interaction" },
+  { source: "Robotics", target: "Inverted pendulum dynamics", relationship: "balance model" },
+  { source: "Robotics", target: "Joint torque", relationship: "dynamics" },
+  { source: "Robotics", target: "Kinematics", relationship: "physics" },
+  { source: "Robotics", target: "Lidar", relationship: "navigation sensor" },
+
+  { source: "Robotics", target: "Mechanical automata", relationship: "historical precursor" },
+  { source: "Robotics", target: "Machine learning algorithms", relationship: "future AI" },
+  { source: "Robotics", target: "Multi-robot coordination", relationship: "future systems" },
+  { source: "Robotics", target: "Near-space robot", relationship: "future environment" },
+  { source: "Robotics", target: "Open-world manipulation", relationship: "future capability" },
+  { source: "Robotics", target: "Predictive maintenance", relationship: "future operations" },
+  { source: "Robotics", target: "QX", relationship: "telepresence" },
+  { source: "Robotics", target: "Real-time navigation", relationship: "future navigation" },
+  { source: "Robotics", target: "Sensor fusion", relationship: "perception" },
+  { source: "Robotics", target: "Teleoperation", relationship: "remote control" },
+  { source: "Robotics", target: "Universal robots", relationship: "collaborative robotics" },
+
+  { source: "Acceleration", target: "Angular acceleration", relationship: "related concept" },
+  { source: "Acceleration", target: "Angular displacement", relationship: "related concept" },
+  { source: "Acceleration", target: "Angular momentum", relationship: "related concept" },
+  { source: "Acceleration", target: "Angular velocity", relationship: "related concept" },
+  { source: "Acceleration", target: "Appells equation of motion", relationship: "dynamics formulation" },
+  { source: "Acceleration", target: "Analytical mechanics", relationship: "mechanics framework" }
+  { source: "Robotics", target: "Manufacturing", relationship: "foundation" },
+  { source: "Robotics", target: "Manufacturing Engineering", relationship: "foundation" },
+  { source: "Robotics", target: "Actuator", relationship: "foundation" },
+  { source: "Robotics", target: "Industrial automation", relationship: "foundation" },
+  { source: "Robotics", target: "Industrial robot", relationship: "foundation" },
+  { source: "Robotics", target: "Aerobot", relationship: "foundation" },
+  { source: "Robotics", target: "AI winter", relationship: "historical context" },
+  { source: "Robotics", target: "ABB", relationship: "industrial robotics" },
+  { source: "Robotics", target: "Robotic sensors", relationship: "foundation" },
+  { source: "Robotics", target: "Accelerometer", relationship: "sensor basis" },
+  { source: "Robotics", target: "Adaptable robotics", relationship: "evolution" },
+  { source: "Robotics", target: "ASIMO", relationship: "humanoid robotics" },
+
+  { source: "Robotics", target: "Bipedal robot", relationship: "mobility" },
+  { source: "Robotics", target: "Ballbot", relationship: "mobility" },
+  { source: "Robotics", target: "Caterpillar tracks", relationship: "locomotion" },
+  { source: "Robotics", target: "Canadarm", relationship: "manipulation" },
+  { source: "Robotics", target: "Dextre", relationship: "dexterous manipulation" },
+  { source: "Robotics", target: "EVE", relationship: "present humanoid" },
+  { source: "Robotics", target: "Epson micro helicopter robot", relationship: "mobile robotics" },
+  { source: "Robotics", target: "Furby", relationship: "consumer robotics" },
+  { source: "Robotics", target: "Gyroscope", relationship: "sensor basis" },
+  { source: "Robotics", target: "Human-robot interaction", relationship: "interaction" },
+  { source: "Robotics", target: "Inverted pendulum dynamics", relationship: "balance model" },
+  { source: "Robotics", target: "Joint torque", relationship: "dynamics" },
+  { source: "Robotics", target: "Kinematics", relationship: "physics" },
+  { source: "Robotics", target: "Lidar", relationship: "navigation sensor" },
+
+  { source: "Robotics", target: "Mechanical automata", relationship: "historical precursor" },
+  { source: "Robotics", target: "Machine learning algorithms", relationship: "future AI" },
+  { source: "Robotics", target: "Multi-robot coordination", relationship: "future systems" },
+  { source: "Robotics", target: "Near-space robot", relationship: "future environment" },
+  { source: "Robotics", target: "Open-world manipulation", relationship: "future capability" },
+  { source: "Robotics", target: "Predictive maintenance", relationship: "future operations" },
+  { source: "Robotics", target: "QX", relationship: "telepresence" },
+  { source: "Robotics", target: "Real-time navigation", relationship: "future navigation" },
+  { source: "Robotics", target: "Sensor fusion", relationship: "perception" },
+  { source: "Robotics", target: "Teleoperation", relationship: "remote control" },
+  { source: "Robotics", target: "Universal robots", relationship: "collaborative robotics" },
+
+  { source: "Acceleration", target: "Angular acceleration", relationship: "related concept" },
+  { source: "Acceleration", target: "Angular displacement", relationship: "related concept" },
+  { source: "Acceleration", target: "Angular momentum", relationship: "related concept" },
+  { source: "Acceleration", target: "Angular velocity", relationship: "related concept" },
+  { source: "Acceleration", target: "Appells equation of motion", relationship: "dynamics formulation" },
+  { source: "Acceleration", target: "Analytical mechanics", relationship: "mechanics framework" },
   { source: "Robotics", target: "Automatic control", relationship: "foundation" },
   { source: "Robotics", target: "Manufacturing", relationship: "foundation" },
   { source: "Robotics", target: "Manufacturing Engineering", relationship: "foundation" },
