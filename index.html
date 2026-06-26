@@ -20,8 +20,8 @@
     .meta-section{margin-bottom:18px;border-top:1px solid rgba(255,255,255,.08);padding-top:14px;}
     .meta-section h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#cfd6df;}
     .kv{display:grid;grid-template-columns:130px 1fr;gap:8px 12px;font-size:13px;line-height:1.45;}
-    .k{color:var(--muted);word-break:break-word;}
-    .v{color:var(--text);word-break:break-word;white-space:pre-wrap;}
+    .k{color:var(--muted);}
+    .v{color:var(--text);white-space:pre-wrap;}
     #tooltip{position:absolute;pointer-events:none;opacity:0;background:rgba(8,10,13,.96);color:white;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;max-width:360px;font-size:13px;line-height:1.45;box-shadow:var(--shadow);transform:translate(12px,12px);z-index:10;}
     #legend{position:absolute;left:18px;top:18px;background:rgba(10,12,15,.75);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);z-index:5;font-size:13px;}
     .legend-row{display:flex;align-items:center;gap:10px;margin-top:8px;color:var(--muted);}
@@ -64,6 +64,62 @@
 </div>
 
 <script>
+const NODES = [
+  {
+    id: "Robotics",
+    label: "Robotics",
+    cluster: "Core",
+    yearSort: 1952,
+    node_type: "category",
+    description: "Root concept for robotics knowledge graph.",
+    parent: null
+  },
+  {
+    id: "1X Technologies",
+    label: "1X Technologies",
+    cluster: "Humanoid Robotics",
+    yearSort: 2026,
+    node_type: "company",
+    description: "Humanoid robotics company focused on embodied AI and bipedal locomotion.",
+    parent: "Robotics"
+  },
+  {
+    id: "ABB",
+    label: "ABB",
+    cluster: "Industrial Robotics",
+    yearSort: 1988,
+    node_type: "company",
+    description: "Industrial automation and robotics company with deep electrical engineering foundations.",
+    parent: "1X Technologies"
+  },
+  {
+    id: "ASIMO",
+    label: "ASIMO",
+    cluster: "Humanoid Robotics",
+    yearSort: 2000,
+    node_type: "robot",
+    description: "Honda humanoid robot demonstrating bipedal locomotion and navigation.",
+    parent: "1X Technologies"
+  },
+  {
+    id: "Agility Robotics",
+    label: "Agility Robotics",
+    cluster: "Mobile Manipulation",
+    yearSort: 2015,
+    node_type: "company",
+    description: "Robotics company known for dynamic bipedal systems and logistics-oriented robots.",
+    parent: "1X Technologies"
+  }
+];
+
+const LINKS = [
+  { source: "Robotics", target: "1X Technologies", relationship: "parent" },
+  { source: "Robotics", target: "ABB", relationship: "parent" },
+  { source: "1X Technologies", target: "ASIMO", relationship: "influenced by" },
+  { source: "1X Technologies", target: "Agility Robotics", relationship: "peer" },
+  { source: "ABB", target: "1X Technologies", relationship: "industrial foundation" }
+];
+
 const svg = d3.select("#svg");
 const wrap = document.getElementById("graph-wrap");
 const tooltip = document.getElementById("tooltip");
@@ -80,98 +136,22 @@ const gLabels = gRoot.append("g");
 
 svg.call(d3.zoom().scaleExtent([0.35, 2.5]).on("zoom", e => gRoot.attr("transform", e.transform)));
 
-let nodes = [], links = [], nodeById = new Map(), selectedId = null;
+let nodeById = new Map(NODES.map(d => [d.id, d]));
+let selectedId = null;
 
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));}
-function labelOf(d){return d.title || d.name || d.label || d.id || "Untitled";}
-function descOf(d){return d.description || d.desc || d.summary || d.text || "No description available.";}
-function yearOf(d){
-  const vals=[d.year,d.date,d.start_year,d.end_year,d.timestamp,d.timelineorigin,d.maturationtimeline];
-  for(const v of vals){
-    if(typeof v==="number" && isFinite(v)) return v;
-    if(typeof v==="string"){const m=v.match(/(\d{4})/); if(m) return +m[1];}
-  }
-  const ym=d.yearmentions;
-  if(Array.isArray(ym) && ym.length){
-    const ys=ym.map(v => +String(v).match(/(\d{4})/)?.[1]).filter(Number.isFinite);
-    if(ys.length) return d3.min(ys);
-  }
-  return 9999;
-}
-function clusterOf(d){ return d.cluster || d.group || d.category || d.domain || d.field || d.parent || "Other"; }
 
-function extract(raw){
-  if(Array.isArray(raw)) return {nodes: raw, links: []};
-  if(raw && typeof raw === "object"){
-    let ns = raw.nodes || raw.items || raw.entities || raw.data || raw.records || [];
-    let ls = raw.links || raw.edges || raw.relationships || raw.connections || [];
-    if((!ns || !ns.length) && raw.graph){ ns = raw.graph.nodes || []; ls = raw.graph.links || raw.graph.edges || []; }
-    return {nodes: ns, links: ls};
-  }
-  return {nodes:[], links:[]};
-}
-function resolveId(v, nodeIds, labelToId){
-  if(v == null) return null;
-  if(typeof v === "object") v = v.id ?? v.title ?? v.name;
-  const key = String(v);
-  if(nodeIds.has(key)) return key;
-  return labelToId.get(key.toLowerCase()) || null;
-}
-function normalize(raw){
-  const ex = extract(raw);
-  const ns = (ex.nodes || []).map((d,i)=>({
-    ...d,
-    id: String(d.id || d._id || d.key || d.title || d.name || d.label || `node-${i}`),
-    label: labelOf(d),
-    description: descOf(d),
-    yearSort: yearOf(d),
-    cluster: clusterOf(d)
-  }));
-  const nodeIds = new Set(ns.map(n=>String(n.id)));
-  const labelToId = new Map(ns.map(n=>[String(n.label).toLowerCase(), String(n.id)]));
-  const ls = (ex.links || []).map((d,i)=>{
-    const s = resolveId(d.source, nodeIds, labelToId);
-    const t = resolveId(d.target, nodeIds, labelToId);
-    if(!s || !t){ console.warn("Skipping unresolved link", {i,d}); return null; }
-    return { ...d, id: d.id || `link-${i}`, source: s, target: t, relationship: d.relationship || d.type || d.label || "" };
-  }).filter(Boolean);
-  return {nodes: ns, links: ls};
-}
-function buildGraph(ns, ls){
-  const incoming = new Map(ns.map(n=>[n.id,[]]));
-  const outgoing = new Map(ns.map(n=>[n.id,[]]));
-  ls.forEach(l=>{
-    const s = typeof l.source === "object" ? l.source.id : l.source;
-    const t = typeof l.target === "object" ? l.target.id : l.target;
-    if(incoming.has(t)) incoming.get(t).push(s);
-    if(outgoing.has(s)) outgoing.get(s).push(t);
-  });
-  const anc = (id, seen=new Set()) => { const out=new Set(); for(const p of incoming.get(id)||[]){ if(!seen.has(p)){ seen.add(p); out.add(p); anc(p, seen).forEach(v=>out.add(v)); } } return out; };
-  const des = (id, seen=new Set()) => { const out=new Set(); for(const c of outgoing.get(id)||[]){ if(!seen.has(c)){ seen.add(c); out.add(c); des(c, seen).forEach(v=>out.add(v)); } } return out; };
-  return {incoming, outgoing, anc, des};
-}
-function colorFor(d){
-  const t = String(d.node_type || d.type || d.kind || d.stage || d.status || "").toLowerCase();
-  if(t.includes("category") || t.includes("taxonomy") || t.includes("cluster")) return getComputedStyle(document.documentElement).getPropertyValue("--category").trim();
-  if(t.includes("emerg") || t.includes("future") || t.includes("prediction")) return getComputedStyle(document.documentElement).getPropertyValue("--emerging").trim();
-  return getComputedStyle(document.documentElement).getPropertyValue("--existing").trim();
-}
 function updateSidebar(d){
   sidebarTitle.textContent = d.label;
-  sidebarSub.textContent = `${d.cluster || "Unclustered"} • ${d.yearSort === 9999 ? "Date unknown" : d.yearSort}`;
-  const entries = Object.entries(d).filter(([k,v]) => !["x","y","vx","vy","fx","fy","index","label","description","yearSort"].includes(k) && v !== undefined && v !== null && v !== "");
+  sidebarSub.textContent = `${d.cluster} • ${d.yearSort}`;
   sidebarContent.innerHTML = `
-    <div class="meta-section"><h3>Description</h3><div class="v">${escapeHtml(d.description)}</div></div>
+    <div class="meta-section"><h3>Description</h3><div class="v">${escapeHtml(d.description || "")}</div></div>
     <div class="meta-section"><h3>Metadata</h3><div class="kv">
-      ${entries.map(([k,v])=>`<div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(typeof v==="object" ? JSON.stringify(v, null, 2) : v)}</div>`).join("")}
+      ${Object.entries(d).map(([k,v]) => `<div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(v === null ? "null" : String(v))}</div>`).join("")}
     </div></div>`;
 }
-function render(raw){
-  const nrm = normalize(raw);
-  nodes = nrm.nodes; links = nrm.links; nodeById = new Map(nodes.map(d=>[d.id,d]));
-  const {incoming, outgoing, anc, des} = buildGraph(nodes, links);
-  nodes.sort((a,b)=>d3.ascending(a.yearSort,b.yearSort) || d3.ascending(a.label,b.label));
 
+function render(){
   const w = wrap.clientWidth, h = wrap.clientHeight;
   const margin = {top:90,right:40,bottom:55,left:40};
   const innerW = Math.max(400, w - margin.left - margin.right);
@@ -179,14 +159,11 @@ function render(raw){
   svg.attr("viewBox",[0,0,w,h]);
   gRoot.attr("transform",`translate(${margin.left},${margin.top})`);
 
-  let extent = d3.extent(nodes,d=>d.yearSort);
-  if(!isFinite(extent[0]) || !isFinite(extent[1])) extent = [1900, 2035];
-  const xScale = d3.scaleLinear().domain(extent).range([90, innerW - 100]);
-
-  const clusters = Array.from(d3.group(nodes, clusterOf), ([key, vals]) => ({key, vals}));
+  const xScale = d3.scaleLinear().domain(d3.extent(NODES, d => d.yearSort)).range([90, innerW - 100]);
+  const clusters = Array.from(d3.group(NODES, d => d.cluster), ([key, vals]) => ({key, vals}));
   const yScale = d3.scaleBand().domain(clusters.map(d=>d.key)).range([20, innerH - 30]).padding(0.28);
 
-  nodes.forEach(n => { n.x = xScale(n.yearSort); n.y = yScale(n.cluster) + yScale.bandwidth()/2; });
+  NODES.forEach(n => { n.x = xScale(n.yearSort); n.y = yScale(n.cluster) + yScale.bandwidth()/2; });
 
   gBands.selectAll("*").remove();
   gGrid.selectAll("*").remove();
@@ -201,72 +178,57 @@ function render(raw){
   gLabels.selectAll("text").data(clusters).enter().append("text")
     .attr("class","cluster-label").attr("x",10).attr("y",d=>yScale(d.key)-16).text(d=>d.key);
 
-  const ticks = xScale.ticks(Math.min(12, Math.max(6, nodes.length / 8)));
+  const ticks = xScale.ticks(8);
   gGrid.selectAll("line").data(ticks).enter().append("line")
     .attr("class","gridline").attr("x1",d=>xScale(d)).attr("x2",d=>xScale(d)).attr("y1",-8).attr("y2",innerH+10);
   gGrid.selectAll("text").data(ticks).enter().append("text")
     .attr("class","axis-label").attr("x",d=>xScale(d)).attr("y",innerH+32).attr("text-anchor","middle").text(d=>d);
 
   const curve = d => {
-    const s = nodeById.get(typeof d.source === "object" ? d.source.id : d.source);
-    const t = nodeById.get(typeof d.target === "object" ? d.target.id : d.target);
-    if(!s || !t) return "";
+    const s = nodeById.get(d.source);
+    const t = nodeById.get(d.target);
     const dx = Math.max(22, Math.abs(t.x - s.x) * 0.45);
     return `M${s.x},${s.y} C${s.x + dx},${s.y} ${t.x - dx},${t.y} ${t.x},${t.y}`;
   };
 
-  const linkSel = gLinks.selectAll("path").data(links).enter().append("path").attr("class","link").attr("d",curve);
+  const linkSel = gLinks.selectAll("path").data(LINKS).enter().append("path").attr("class","link").attr("d",curve);
 
-  const nodeSel = gNodes.selectAll("g").data(nodes).enter().append("g")
+  const nodeSel = gNodes.selectAll("g").data(NODES).enter().append("g")
     .attr("class","node").attr("transform",d=>`translate(${d.x},${d.y})`)
-    .on("mousemove",(event,d)=>{ tooltip.style.opacity=1; tooltip.style.left=event.offsetX+"px"; tooltip.style.top=event.offsetY+"px"; tooltip.innerHTML=`<strong>${escapeHtml(d.label)}</strong><br>${escapeHtml(d.description)}`; })
+    .on("mousemove",(event,d)=>{ tooltip.style.opacity=1; tooltip.style.left=event.offsetX+"px"; tooltip.style.top=event.offsetY+"px"; tooltip.innerHTML=`<strong>${escapeHtml(d.label)}</strong><br>${escapeHtml(d.description || "")}`; })
     .on("mouseleave",()=>{ tooltip.style.opacity=0; })
     .on("click",(event,d)=>{ event.stopPropagation(); selectedId=d.id; updateHighlights(); updateSidebar(d); });
 
   nodeSel.append("circle")
-    .attr("r",d => 7.5 + Math.min(9, ((incoming.get(d.id)?.length||0)+(outgoing.get(d.id)?.length||0)) * 0.55))
-    .attr("fill",d=>colorFor(d));
+    .attr("r",d => 9 + Math.min(10, (LINKS.filter(l => l.source===d.id || l.target===d.id).length) * 0.7))
+    .attr("fill",d => d.node_type === "category" ? getComputedStyle(document.documentElement).getPropertyValue("--category").trim()
+      : d.yearSort >= 2020 ? getComputedStyle(document.documentElement).getPropertyValue("--emerging").trim()
+      : getComputedStyle(document.documentElement).getPropertyValue("--existing").trim());
 
   nodeSel.append("text").attr("x",12).attr("y",4).text(d=>d.label);
 
   function updateHighlights(){
     const selected = selectedId ? nodeById.get(selectedId) : null;
-    const A = selected ? anc(selected.id) : new Set();
-    const D = selected ? des(selected.id) : new Set();
-    const active = new Set([selectedId, ...A, ...D].filter(Boolean));
-
+    const active = new Set([selectedId]);
+    if(selected){
+      LINKS.forEach(l => {
+        if(l.source === selected.id) active.add(l.target);
+        if(l.target === selected.id) active.add(l.source);
+      });
+    }
     nodeSel.classed("highlight", d=>selected && active.has(d.id))
       .classed("selected", d=>selected && d.id===selected.id)
       .classed("dim", d=>selected && !active.has(d.id));
-
-    linkSel.classed("highlight", d=>{
-      if(!selected) return false;
-      const s = typeof d.source === "object" ? d.source.id : d.source;
-      const t = typeof d.target === "object" ? d.target.id : d.target;
-      return active.has(s) && active.has(t);
-    }).classed("dim", d=>{
-      if(!selected) return false;
-      const s = typeof d.source === "object" ? d.source.id : d.source;
-      const t = typeof d.target === "object" ? d.target.id : d.target;
-      return !(active.has(s) && active.has(t));
-    });
+    linkSel.classed("highlight", d=>selected && (d.source===selected.id || d.target===selected.id))
+      .classed("dim", d=>selected && !(d.source===selected.id || d.target===selected.id));
   }
 
   updateHighlights();
-
   svg.on("click",()=>{ selectedId=null; sidebarTitle.textContent="Select a node"; sidebarSub.textContent="Metadata will appear here."; sidebarContent.innerHTML=""; updateHighlights(); });
-  window.onresize = () => render(raw);
+  window.onresize = () => render();
 }
 
-fetch("robotics_knowledge_base_with_predictions.json")
-  .then(r => { if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-  .then(data => render(data))
-  .catch(err => {
-    sidebarTitle.textContent = "Could not load JSON";
-    sidebarSub.textContent = "Check file path and browser permissions.";
-    sidebarContent.innerHTML = `<div class="meta-section"><h3>Error</h3><div class="v">${escapeHtml(String(err))}</div></div>`;
-    console.error(err);
-  });
+render();
 </script>
 </body>
 </html>
