@@ -425,9 +425,15 @@
             camera.position.set(0, 300, 800);
             camera.lookAt(0, 0, 0);
 
-            // Renderer
-            const canvas = document.getElementById('canvas');
-            renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+            // Renderer - get existing canvas or create one
+            let canvas = document.getElementById('canvas');
+            if (!canvas) {
+                canvas = document.createElement('canvas');
+                canvas.id = 'canvas';
+                document.body.insertBefore(canvas, document.body.firstChild);
+            }
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true, canvas: canvas });
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(window.devicePixelRatio);
             renderer.shadowMap.enabled = true;
