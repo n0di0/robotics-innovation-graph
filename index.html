@@ -46,6 +46,7 @@
             border-bottom: 2px solid #c0c0c0;
             padding: 20px 30px;
             pointer-events: auto;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
         }
 
         .header h1 {
@@ -72,6 +73,8 @@
             padding: 15px;
             pointer-events: auto;
             max-width: 250px;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .control-title {
@@ -92,16 +95,18 @@
             color: #a0a0a0;
             border-radius: 3px;
             cursor: pointer;
-            font-size: 11px;
+            font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             margin: 3px 3px 3px 0;
             transition: all 0.3s;
+            white-space: nowrap;
         }
 
         .filter-btn:hover {
             border-color: #c0c0c0;
             color: #c0c0c0;
+            background: #404040;
         }
 
         .filter-btn.active {
@@ -199,7 +204,6 @@
             border-bottom: 1px solid #404040;
             padding-bottom: 10px;
             font-weight: 500;
-            margin-top: 20px;
         }
 
         .node-detail {
@@ -304,19 +308,29 @@
             letter-spacing: 0.5px;
         }
 
+        .error-message {
+            color: #ff6b6b;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        .controls::-webkit-scrollbar,
         .sidebar::-webkit-scrollbar {
             width: 8px;
         }
 
+        .controls::-webkit-scrollbar-track,
         .sidebar::-webkit-scrollbar-track {
             background: #1a1a1a;
         }
 
+        .controls::-webkit-scrollbar-thumb,
         .sidebar::-webkit-scrollbar-thumb {
             background: #606060;
             border-radius: 4px;
         }
 
+        .controls::-webkit-scrollbar-thumb:hover,
         .sidebar::-webkit-scrollbar-thumb:hover {
             background: #c0c0c0;
         }
@@ -367,25 +381,41 @@
 
         <div class="loading" id="loading">
             <div class="loading-spinner"></div>
-            <div class="loading-text">Initializing 3D Timeline...</div>
+            <div class="loading-text">Loading timeline...</div>
+            <div class="error-message" id="errorMsg"></div>
         </div>
     </div>
 
-    <script src="robotics_data.js"></script>
     <script>
-        // ===== THREE.JS SETUP =====
         let scene, camera, renderer, controls;
         let nodes = [];
-        let edges = [];
         let nodeDetails = new Map();
         let raycaster = new THREE.Raycaster();
         let mouse = new THREE.Vector2();
         let hoveredNode = null;
         let selectedNode = null;
-        const categories = new Map();
+        let categories = new Map();
+        let rawData = null;
+
+        // Load JSON data
+        async function loadData() {
+            try {
+                const response = await fetch('robotics_knowledge_base_with_predictions.json');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                rawData = await response.json();
+                console.log('✓ Data loaded successfully');
+                initThreeJS();
+            } catch (error) {
+                console.error('Error loading JSON:', error);
+                document.getElementById('errorMsg').textContent = `Error: ${error.message}`;
+                document.getElementById('loading').style.background = 'rgba(200, 50, 50, 0.3)';
+            }
+        }
 
         function initThreeJS() {
-            // Scene setup
+            // Scene
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x1a1a1a);
             scene.fog = new THREE.Fog(0x1a1a1a, 1500, 3000);
@@ -417,31 +447,26 @@
             controls = new THREE.OrbitControls(camera, renderer.domElement);
             controls.enableDamping = true;
             controls.dampingFactor = 0.05;
-            controls.autoRotate = false;
             controls.enableZoom = true;
             controls.enablePan = true;
 
             // Process data
             processData();
 
-            // Populate filters
+            // UI
             populateFilters();
-
-            // Populate legend
             populateLegend();
 
-            // Event listeners
+            // Events
             window.addEventListener('mousemove', onMouseMove);
             window.addEventListener('click', onMouseClick);
             window.addEventListener('resize', onWindowResize);
-            document.getElementById('closeSidebar').addEventListener('click', () => {
-                document.getElementById('sidebar').classList.remove('open');
-            });
+            document.getElementById('closeSidebar').addEventListener('click', closeSidebar);
 
             // Hide loading
             document.getElementById('loading').style.display = 'none';
 
-            // Start animation loop
+            // Animate
             animate();
         }
 
@@ -449,48 +474,50 @@
             const minYear = 1950;
             const maxYear = 2036;
 
-            Object.entries(ROBOTICS_DATA.articles).forEach(([key, article]) => {
-                // Determine category
+            Object.entries(rawData.articles).forEach(([key, article]) => {
+                // Category
                 let category = 'Other';
                 if (article.categories && Array.isArray(article.categories)) {
-                    if (article.categories.some(c => c.includes('Robotics') || c.includes('robot'))) {
+                    const cats = article.categories.join(' ').toLowerCase();
+                    if (cats.includes('robotics') || cats.includes('robot')) {
                         category = 'Core Robotics';
-                    } else if (article.categories.some(c => c.includes('Artificial intelligence') || c.includes('AI'))) {
+                    } else if (cats.includes('artificial intelligence') || cats.includes('ai')) {
                         category = 'AI & Learning';
-                    } else if (article.categories.some(c => c.includes('Manufacturing') || c.includes('Industrial'))) {
+                    } else if (cats.includes('manufacturing') || cats.includes('industrial')) {
                         category = 'Manufacturing';
-                    } else if (article.categories.some(c => c.includes('Control') || c.includes('Automation'))) {
+                    } else if (cats.includes('control') || cats.includes('automation')) {
                         category = 'Control Systems';
-                    } else if (article.categories.some(c => c.includes('Material') || c.includes('Engineer'))) {
+                    } else if (cats.includes('material') || cats.includes('engineer')) {
                         category = 'Materials & Engineering';
-                    } else if (article.categories.some(c => c.includes('Sensor') || c.includes('Vision') || c.includes('Perception'))) {
+                    } else if (cats.includes('sensor') || cats.includes('vision') || cats.includes('perception')) {
                         category = 'Sensing & Perception';
                     }
                 }
 
-                // Get year
+                // Year
                 let year = 2026;
                 if (article.year_mentions && article.year_mentions.length > 0) {
                     year = article.year_mentions[article.year_mentions.length - 1];
                 }
 
-                // Calculate size based on importance
+                // Size
                 const importance = Math.min(100, Math.max(10, (article.relationships || 0) + (article.links_found || 0) / 50));
                 const size = (importance / 100) * 30 + 10;
 
-                // Calculate color based on year (grey to silver)
-                const progress = Math.max(0, Math.min(1, (year - minYear) / (maxYear - minYear)));
-                const r = Math.round(74 + (192 - 74) * progress);
-                const g = Math.round(74 + (192 - 74) * progress);
-                const b = Math.round(74 + (192 - 74) * progress);
+                // Color (grey to silver)
+                const progress = (year - minYear) / (maxYear - minYear);
+                const clampedProgress = Math.max(0, Math.min(1, progress));
+                const r = Math.round(74 + (192 - 74) * clampedProgress);
+                const g = Math.round(74 + (192 - 74) * clampedProgress);
+                const b = Math.round(74 + (192 - 74) * clampedProgress);
                 const color = new THREE.Color(`rgb(${r}, ${g}, ${b})`);
 
-                // X position based on year (timeline)
+                // Position (horizontal timeline + random scatter)
                 const x = ((year - minYear) / (maxYear - minYear)) * 1200 - 600;
                 const y = (Math.random() - 0.5) * 400;
                 const z = (Math.random() - 0.5) * 300;
 
-                // Create sphere
+                // Mesh
                 const geometry = new THREE.SphereGeometry(size, 32, 32);
                 const material = new THREE.MeshStandardMaterial({
                     color: color,
@@ -508,7 +535,7 @@
                 scene.add(mesh);
                 nodes.push(mesh);
 
-                // Store details
+                // Details
                 nodeDetails.set(key, {
                     title: article.title,
                     category: category,
@@ -529,7 +556,7 @@
                 categories.get(category).push(key);
             });
 
-            // Draw timeline axis
+            // Timeline axis
             const axisGeometry = new THREE.BufferGeometry();
             const axisPoints = [new THREE.Vector3(-600, 0, 0), new THREE.Vector3(600, 0, 0)];
             axisGeometry.setFromPoints(axisPoints);
@@ -537,9 +564,8 @@
             const axisLine = new THREE.Line(axisGeometry, axisMaterial);
             scene.add(axisLine);
 
-            // Add year markers
-            const years = [1950, 1980, 2010, 2026, 2036];
-            years.forEach(y => {
+            // Year markers
+            [1950, 1980, 2010, 2026, 2036].forEach(y => {
                 const xPos = ((y - 1950) / (2036 - 1950)) * 1200 - 600;
                 const geometry = new THREE.BoxGeometry(2, 20, 2);
                 const material = new THREE.MeshStandardMaterial({ color: 0x606060 });
@@ -579,9 +605,9 @@
         function populateLegend() {
             const legend = document.getElementById('legend');
             let html = '<strong style="color: #ffffff; display: block; margin-bottom: 10px; font-size: 11px;">Timeline Colors</strong>';
-            html += '<div class="legend-item"><div class="legend-color" style="background: #4a4a4a;"></div><div class="legend-text">Historical</div></div>';
-            html += '<div class="legend-item"><div class="legend-color" style="background: #8a8a8a;"></div><div class="legend-text">Recent</div></div>';
-            html += '<div class="legend-item"><div class="legend-color" style="background: #c0c0c0;"></div><div class="legend-text">Future</div></div>';
+            html += '<div class="legend-item"><div class="legend-color" style="background: #4a4a4a;"></div><div class="legend-text">Historical (1950s)</div></div>';
+            html += '<div class="legend-item"><div class="legend-color" style="background: #8a8a8a;"></div><div class="legend-text">Recent (2010s)</div></div>';
+            html += '<div class="legend-item"><div class="legend-color" style="background: #c0c0c0;"></div><div class="legend-text">Future (2030s+)</div></div>';
             legend.innerHTML = html;
         }
 
@@ -592,7 +618,6 @@
             raycaster.setFromCamera(mouse, camera);
             const intersects = raycaster.intersectObjects(nodes);
 
-            // Remove previous hover
             if (hoveredNode && hoveredNode !== selectedNode) {
                 hoveredNode.material.emissiveIntensity = 0.2;
             }
@@ -640,31 +665,13 @@
             const content = document.getElementById('sidebarContent');
 
             let html = `<div class="node-title">${details.title}</div>`;
-            html += `<div class="node-detail">
-                <div class="detail-label">Category</div>
-                <div class="detail-value">${details.category}</div>
-            </div>`;
-            html += `<div class="node-detail">
-                <div class="detail-label">Year</div>
-                <div class="detail-value">${details.year}</div>
-            </div>`;
-            html += `<div class="node-detail">
-                <div class="detail-label">Criticality</div>
-                <div class="detail-value"><span class="detail-tag">${details.criticality.toUpperCase()}</span></div>
-            </div>`;
-            html += `<div class="node-detail">
-                <div class="detail-label">Impact</div>
-                <div class="detail-value">
-                    Relationships: ${details.relationships}<br>
-                    Links: ${details.linksFound}<br>
-                    Text: ${(details.textLength / 1000).toFixed(1)}k chars
-                </div>
-            </div>`;
+            html += `<div class="node-detail"><div class="detail-label">Category</div><div class="detail-value">${details.category}</div></div>`;
+            html += `<div class="node-detail"><div class="detail-label">Year</div><div class="detail-value">${details.year}</div></div>`;
+            html += `<div class="node-detail"><div class="detail-label">Criticality</div><div class="detail-value"><span class="detail-tag">${details.criticality.toUpperCase()}</span></div></div>`;
+            html += `<div class="node-detail"><div class="detail-label">Impact</div><div class="detail-value">Relationships: ${details.relationships}<br>Links: ${details.linksFound}<br>Text: ${(details.textLength / 1000).toFixed(1)}k chars</div></div>`;
 
             if (details.applications && details.applications.length > 0) {
-                html += `<div class="node-detail">
-                    <div class="detail-label">Applications</div>
-                    <div class="detail-value">`;
+                html += `<div class="node-detail"><div class="detail-label">Applications</div><div class="detail-value">`;
                 details.applications.slice(0, 3).forEach(app => {
                     html += `<div style="margin-bottom: 6px; font-size: 11px;">• ${app}</div>`;
                 });
@@ -672,22 +679,21 @@
             }
 
             if (details.convergence && details.convergence.length > 0) {
-                html += `<div class="node-detail">
-                    <div class="detail-label">Convergence</div>
-                    <div class="detail-value">`;
+                html += `<div class="node-detail"><div class="detail-label">Convergence</div><div class="detail-value">`;
                 details.convergence.slice(0, 3).forEach(field => {
                     html += `<span class="detail-tag">${field}</span>`;
                 });
                 html += `</div></div>`;
             }
 
-            html += `<div class="node-detail">
-                <div class="detail-label">Description</div>
-                <div class="detail-value">${details.description}</div>
-            </div>`;
+            html += `<div class="node-detail"><div class="detail-label">Description</div><div class="detail-value">${details.description}</div></div>`;
 
             content.innerHTML = html;
             sidebar.classList.add('open');
+        }
+
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
         }
 
         function animate() {
@@ -702,12 +708,8 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
         }
 
-        // Initialize when data is loaded
-        if (typeof ROBOTICS_DATA !== 'undefined') {
-            initThreeJS();
-        } else {
-            console.error('Data not loaded');
-        }
+        // Start
+        loadData();
     </script>
 </body>
 </html>
