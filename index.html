@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Robotic Innovations Timeline</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.21.0/vis.min.css" rel="stylesheet" type="text/css" />
+    <title>Robotic Innovations - 3D Timeline</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/controls/OrbitControls.js"></script>
     <style>
         * {
             margin: 0;
@@ -21,23 +21,37 @@
             height: 100vh;
         }
 
-        .container {
-            display: flex;
-            height: 100vh;
-            flex-direction: column;
+        #canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .ui-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 100;
         }
 
         .header {
-            background: #222222;
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(34, 34, 34, 0.95);
             border-bottom: 2px solid #c0c0c0;
             padding: 20px 30px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+            pointer-events: auto;
         }
 
         .header h1 {
             font-size: 24px;
             color: #ffffff;
-            margin-bottom: 8px;
+            margin-bottom: 5px;
             font-weight: 500;
             letter-spacing: 0.5px;
         }
@@ -48,86 +62,31 @@
             letter-spacing: 0.5px;
         }
 
-        .controls-section {
-            background: #262626;
-            padding: 15px 30px;
-            border-bottom: 1px solid #404040;
-            display: flex;
-            gap: 20px;
-            align-items: center;
-            flex-wrap: wrap;
+        .controls {
+            position: absolute;
+            top: 100px;
+            left: 30px;
+            background: rgba(34, 34, 34, 0.95);
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 15px;
+            pointer-events: auto;
+            max-width: 250px;
         }
 
-        .filter-toggle {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .filter-toggle label {
-            color: #c0c0c0;
+        .control-title {
             font-size: 12px;
+            color: #c0c0c0;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-        .toggle-checkbox {
-            appearance: none;
-            width: 40px;
-            height: 20px;
-            background: #3a3a3a;
-            border: 2px solid #606060;
-            border-radius: 10px;
-            cursor: pointer;
-            position: relative;
-            transition: all 0.3s;
-        }
-
-        .toggle-checkbox:checked {
-            background: #c0c0c0;
-            border-color: #c0c0c0;
-        }
-
-        .toggle-checkbox::after {
-            content: '';
-            position: absolute;
-            width: 14px;
-            height: 14px;
-            background: #1a1a1a;
-            border-radius: 6px;
-            top: 2px;
-            left: 2px;
-            transition: left 0.3s;
-        }
-
-        .toggle-checkbox:checked::after {
-            left: 19px;
-            background: #222222;
-        }
-
-        .filter-options {
-            display: flex;
-            gap: 15px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-
-        .filter-options.visible {
-            max-height: 100px;
-            margin-top: 10px;
-        }
-
-        .category-filter, .timeline-filter {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+            font-weight: 600;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #404040;
+            padding-bottom: 8px;
         }
 
         .filter-btn {
-            padding: 6px 12px;
+            padding: 6px 10px;
             background: #3a3a3a;
             border: 1px solid #606060;
             color: #a0a0a0;
@@ -136,14 +95,13 @@
             font-size: 11px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin: 3px 3px 3px 0;
             transition: all 0.3s;
-            font-weight: 500;
         }
 
         .filter-btn:hover {
             border-color: #c0c0c0;
             color: #c0c0c0;
-            background: #404040;
         }
 
         .filter-btn.active {
@@ -152,31 +110,48 @@
             border-color: #c0c0c0;
         }
 
-        .main-content {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
+        .tooltip {
+            position: absolute;
+            background: rgba(26, 26, 26, 0.98);
+            border: 1px solid #606060;
+            border-radius: 4px;
+            padding: 12px;
+            font-size: 12px;
+            max-width: 250px;
+            pointer-events: none;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
         }
 
-        .visualization-container {
-            flex: 1;
-            position: relative;
-            background: #1a1a1a;
+        .tooltip-title {
+            color: #ffffff;
+            font-weight: 600;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 11px;
         }
 
-        #network {
-            width: 100%;
-            height: 100%;
-            background: #1a1a1a;
+        .tooltip-text {
+            color: #b0b0b0;
+            font-size: 11px;
+            line-height: 1.5;
         }
 
         .sidebar {
+            position: absolute;
+            right: 0;
+            top: 0;
             width: 0;
-            background: #222222;
+            height: 100vh;
+            background: rgba(34, 34, 34, 0.98);
             border-left: 2px solid #c0c0c0;
             overflow-y: auto;
             transition: width 0.3s ease;
+            pointer-events: auto;
             box-shadow: -4px 0 16px rgba(0, 0, 0, 0.5);
+            z-index: 200;
         }
 
         .sidebar.open {
@@ -209,6 +184,7 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s;
+            z-index: 210;
         }
 
         .close-btn:hover {
@@ -223,6 +199,7 @@
             border-bottom: 1px solid #404040;
             padding-bottom: 10px;
             font-weight: 500;
+            margin-top: 20px;
         }
 
         .node-detail {
@@ -256,60 +233,16 @@
             border: 1px solid #606060;
         }
 
-        .tooltip {
-            background: rgba(26, 26, 26, 0.98);
-            border: 1px solid #606060;
-            border-radius: 4px;
-            padding: 12px;
-            font-size: 12px;
-            max-width: 250px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
-        }
-
-        .tooltip-title {
-            color: #ffffff;
-            font-weight: 600;
-            margin-bottom: 6px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 11px;
-        }
-
-        .tooltip-text {
-            color: #b0b0b0;
-            font-size: 11px;
-            line-height: 1.5;
-        }
-
-        /* Custom scrollbar */
-        .sidebar::-webkit-scrollbar {
-            width: 8px;
-        }
-
-        .sidebar::-webkit-scrollbar-track {
-            background: #1a1a1a;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb {
-            background: #606060;
-            border-radius: 4px;
-        }
-
-        .sidebar::-webkit-scrollbar-thumb:hover {
-            background: #c0c0c0;
-        }
-
-        /* Legend */
         .legend {
             position: absolute;
             bottom: 20px;
-            left: 20px;
+            left: 30px;
             background: rgba(26, 26, 26, 0.95);
             border: 1px solid #606060;
             border-radius: 4px;
             padding: 15px;
             font-size: 11px;
-            max-width: 200px;
+            pointer-events: auto;
         }
 
         .legend-item {
@@ -335,14 +268,18 @@
             font-size: 10px;
         }
 
-        /* Loading indicator */
         .loading {
-            position: absolute;
+            position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             text-align: center;
-            z-index: 1000;
+            z-index: 500;
+            pointer-events: auto;
+            background: rgba(26, 26, 26, 0.95);
+            padding: 30px;
+            border-radius: 4px;
+            border: 1px solid #606060;
         }
 
         .loading-spinner {
@@ -366,85 +303,154 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
+        .sidebar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: #1a1a1a;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: #606060;
+            border-radius: 4px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: #c0c0c0;
+        }
+
+        .info-text {
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            font-size: 11px;
+            color: #a0a0a0;
+            background: rgba(34, 34, 34, 0.95);
+            border: 1px solid #404040;
+            border-radius: 4px;
+            padding: 10px 15px;
+            pointer-events: auto;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
+    <div id="canvas"></div>
+
+    <div class="ui-container">
         <div class="header">
             <h1>Robotic Innovations Timeline</h1>
-            <div class="header-subtext">Interactive knowledge graph | Past → Present → Future</div>
+            <div class="header-subtext">3D Interactive Knowledge Graph | Drag to rotate • Scroll to zoom • Click nodes for details</div>
         </div>
 
-        <div class="controls-section">
-            <div class="filter-toggle">
-                <label for="filterToggle">Filters</label>
-                <input type="checkbox" id="filterToggle" class="toggle-checkbox">
-            </div>
-            <div class="filter-options" id="filterOptions">
-                <div>
-                    <div style="color: #c0c0c0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; font-weight: 600;">Category:</div>
-                    <div class="category-filter" id="categoryFilter"></div>
-                </div>
-                <div>
-                    <div style="color: #c0c0c0; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 5px; font-weight: 600;">Timeline:</div>
-                    <div class="timeline-filter" id="timelineFilter">
-                        <button class="filter-btn active" data-period="all">All Eras</button>
-                        <button class="filter-btn" data-period="past">Past (Pre-2020)</button>
-                        <button class="filter-btn" data-period="present">Present (2020-2026)</button>
-                        <button class="filter-btn" data-period="future">Future (2026+)</button>
-                    </div>
-                </div>
-            </div>
+        <div class="controls">
+            <div class="control-title">Filter by Category</div>
+            <div id="categoryFilters"></div>
         </div>
 
-        <div class="main-content">
-            <div class="visualization-container">
-                <div id="network"></div>
-                <div class="loading" id="loading">
-                    <div class="loading-spinner"></div>
-                    <div class="loading-text">Loading timeline...</div>
-                </div>
-                <div class="legend" id="legend"></div>
-            </div>
+        <div class="tooltip" id="tooltip">
+            <div class="tooltip-title" id="tooltipTitle"></div>
+            <div class="tooltip-text" id="tooltipText"></div>
+        </div>
 
-            <div class="sidebar" id="sidebar">
-                <button class="close-btn" id="closeSidebar">&times;</button>
-                <div class="sidebar-content" id="sidebarContent"></div>
-            </div>
+        <div class="sidebar" id="sidebar">
+            <button class="close-btn" id="closeSidebar">&times;</button>
+            <div class="sidebar-content" id="sidebarContent"></div>
+        </div>
+
+        <div class="legend" id="legend"></div>
+
+        <div class="info-text">
+            DRAG • SCROLL • CLICK
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Initializing 3D Timeline...</div>
         </div>
     </div>
 
     <script src="robotics_data.js"></script>
     <script>
-        // Global data container
-        let network = null;
+        // ===== THREE.JS SETUP =====
+        let scene, camera, renderer, controls;
+        let nodes = [];
+        let edges = [];
+        let nodeDetails = new Map();
+        let raycaster = new THREE.Raycaster();
+        let mouse = new THREE.Vector2();
+        let hoveredNode = null;
+        let selectedNode = null;
+        const categories = new Map();
 
-        function loadData() {
-            try {
-                if (typeof ROBOTICS_DATA !== 'undefined' && ROBOTICS_DATA !== null) {
-                    initializeVisualization();
-                } else {
-                    throw new Error('ROBOTICS_DATA is not defined');
-                }
-            } catch (error) {
-                console.error('Error loading data:', error);
-                document.getElementById('loading').innerHTML = '<div style="color: #c0c0c0; padding: 20px;">Error: Could not load data<br><br>Make sure robotics_data.js is in the same folder<br><br>Check browser console for details.</div>';
-            }
+        function initThreeJS() {
+            // Scene setup
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x1a1a1a);
+            scene.fog = new THREE.Fog(0x1a1a1a, 1500, 3000);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 10000);
+            camera.position.set(0, 300, 800);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer
+            const canvas = document.getElementById('canvas');
+            renderer = new THREE.WebGLRenderer({ antialias: true, canvas });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(500, 500, 500);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 2048;
+            directionalLight.shadow.mapSize.height = 2048;
+            scene.add(directionalLight);
+
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+            controls.autoRotate = false;
+            controls.enableZoom = true;
+            controls.enablePan = true;
+
+            // Process data
+            processData();
+
+            // Populate filters
+            populateFilters();
+
+            // Populate legend
+            populateLegend();
+
+            // Event listeners
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('click', onMouseClick);
+            window.addEventListener('resize', onWindowResize);
+            document.getElementById('closeSidebar').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.remove('open');
+            });
+
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+
+            // Start animation loop
+            animate();
         }
 
-        function initializeVisualization() {
-            // ===== DATA PROCESSING =====
-            const categories = new Map();
-            const nodeData = [];
-            const edgeData = [];
-            const nodeDetails = new Map();
+        function processData() {
+            const minYear = 1950;
+            const maxYear = 2036;
 
-            // Extract unique years from all articles
-            const allYears = new Set();
-            
-            // Process articles into nodes
             Object.entries(ROBOTICS_DATA.articles).forEach(([key, article]) => {
-                // Determine category based on article metadata
+                // Determine category
                 let category = 'Other';
                 if (article.categories && Array.isArray(article.categories)) {
                     if (article.categories.some(c => c.includes('Robotics') || c.includes('robot'))) {
@@ -462,44 +468,57 @@
                     }
                 }
 
-                // Get primary year or average year
-                let primaryYear = 2026; // default to present
-                if (article.year_mentions && Array.isArray(article.year_mentions) && article.year_mentions.length > 0) {
-                    primaryYear = article.year_mentions[article.year_mentions.length - 1];
-                    article.year_mentions.forEach(y => allYears.add(y));
+                // Get year
+                let year = 2026;
+                if (article.year_mentions && article.year_mentions.length > 0) {
+                    year = article.year_mentions[article.year_mentions.length - 1];
                 }
 
-                // Calculate importance from relationships and links
+                // Calculate size based on importance
                 const importance = Math.min(100, Math.max(10, (article.relationships || 0) + (article.links_found || 0) / 50));
+                const size = (importance / 100) * 30 + 10;
 
-                // Determine color based on year (grey to silver/gold gradient)
-                const colorValue = getColorForYear(primaryYear);
+                // Calculate color based on year (grey to silver)
+                const progress = Math.max(0, Math.min(1, (year - minYear) / (maxYear - minYear)));
+                const r = Math.round(74 + (192 - 74) * progress);
+                const g = Math.round(74 + (192 - 74) * progress);
+                const b = Math.round(74 + (192 - 74) * progress);
+                const color = new THREE.Color(`rgb(${r}, ${g}, ${b})`);
 
-                // Create node
-                nodeData.push({
-                    id: key,
-                    label: article.title,
-                    title: article.title,
-                    category: category,
-                    year: primaryYear,
-                    size: importance,
-                    color: colorValue,
-                    physics: true,
-                    x: (primaryYear - 1950) * 20, // Chronological X positioning
+                // X position based on year (timeline)
+                const x = ((year - minYear) / (maxYear - minYear)) * 1200 - 600;
+                const y = (Math.random() - 0.5) * 400;
+                const z = (Math.random() - 0.5) * 300;
+
+                // Create sphere
+                const geometry = new THREE.SphereGeometry(size, 32, 32);
+                const material = new THREE.MeshStandardMaterial({
+                    color: color,
+                    metalness: 0.3,
+                    roughness: 0.4,
+                    emissive: color,
+                    emissiveIntensity: 0.2
                 });
+                const mesh = new THREE.Mesh(geometry, material);
+                mesh.position.set(x, y, z);
+                mesh.castShadow = true;
+                mesh.receiveShadow = true;
+                mesh.userData = { id: key, year, category, importance };
+
+                scene.add(mesh);
+                nodes.push(mesh);
 
                 // Store details
                 nodeDetails.set(key, {
                     title: article.title,
                     category: category,
-                    year: primaryYear,
+                    year: year,
                     relationships: article.relationships || 0,
                     linksFound: article.links_found || 0,
                     textLength: article.text_length || 0,
                     description: article.predictions?.forward_trajectory?.future_impact || 'Innovation in robotic systems.',
                     applications: article.predictions?.forward_trajectory?.emerging_applications || [],
                     convergence: article.predictions?.forward_trajectory?.convergence_with || [],
-                    predecessors: article.predictions?.predecessors?.direct_predecessors || [],
                     criticality: article.predictions?.backward_analysis?.criticality_level || 'medium'
                 });
 
@@ -510,242 +529,29 @@
                 categories.get(category).push(key);
             });
 
-            // Create edges based on parent-child relationships
-            Object.entries(ROBOTICS_DATA.articles).forEach(([key, article]) => {
-                if (article.parent && ROBOTICS_DATA.articles[article.parent]) {
-                    edgeData.push({
-                        from: article.parent,
-                        to: key,
-                        smooth: { type: 'cubicBezier', forceDirection: 'horizontal' },
-                        color: { color: 'rgba(192, 192, 192, 0.15)' },
-                        arrows: 'to',
-                        width: 1.5
-                    });
-                }
+            // Draw timeline axis
+            const axisGeometry = new THREE.BufferGeometry();
+            const axisPoints = [new THREE.Vector3(-600, 0, 0), new THREE.Vector3(600, 0, 0)];
+            axisGeometry.setFromPoints(axisPoints);
+            const axisMaterial = new THREE.LineBasicMaterial({ color: 0x606060, linewidth: 2 });
+            const axisLine = new THREE.Line(axisGeometry, axisMaterial);
+            scene.add(axisLine);
+
+            // Add year markers
+            const years = [1950, 1980, 2010, 2026, 2036];
+            years.forEach(y => {
+                const xPos = ((y - 1950) / (2036 - 1950)) * 1200 - 600;
+                const geometry = new THREE.BoxGeometry(2, 20, 2);
+                const material = new THREE.MeshStandardMaterial({ color: 0x606060 });
+                const marker = new THREE.Mesh(geometry, material);
+                marker.position.set(xPos, -50, 0);
+                scene.add(marker);
             });
+        }
 
-            // ===== COLOR MAPPING =====
-            function getColorForYear(year) {
-                // Grey to silver gradient, with gold hint
-                const currentYear = 2026;
-                const startYear = 1950;
-                const range = currentYear - startYear;
-                const progress = (year - startYear) / range;
-
-                // Clamp between 0 and 1
-                const clampedProgress = Math.max(0, Math.min(1, progress));
-
-                // Grey: #4a4a4a, Silver: #c0c0c0, with gold hint
-                const baseR = 74, baseG = 74, baseB = 74;
-                const silverR = 192, silverG = 192, silverB = 192;
-
-                const r = Math.round(baseR + (silverR - baseR) * clampedProgress);
-                const g = Math.round(baseG + (silverG - baseG) * clampedProgress);
-                const b = Math.round(baseB + (silverB - baseB) * clampedProgress);
-
-                return {
-                    background: `rgb(${r},${g},${b})`,
-                    border: '#c0c0c0',
-                    highlight: { background: '#e0e0e0', border: '#ffffff' }
-                };
-            }
-
-            // ===== VIS.JS NETWORK =====
-            const container = document.getElementById('network');
-            const nodesCollection = new vis.DataSet(nodeData);
-            const edgesCollection = new vis.DataSet(edgeData);
-
-            const data = {
-                nodes: nodesCollection,
-                edges: edgesCollection
-            };
-
-            const options = {
-                physics: {
-                    enabled: true,
-                    barnesHut: {
-                        gravitationalConstant: -15000,
-                        centralGravity: 0.3,
-                        springLength: 200,
-                        springConstant: 0.04
-                    },
-                    minVelocity: 0.75,
-                    solver: 'barnesHut',
-                    timestep: 0.5,
-                    adaptiveTimestep: true
-                },
-                nodes: {
-                    shape: 'circle',
-                    borderWidth: 2,
-                    borderWidthSelected: 3,
-                    font: {
-                        size: 13,
-                        color: '#000000',
-                        face: 'Segoe UI, Tahoma, Geneva, Verdana, sans-serif',
-                        bold: { color: '#ffffff' }
-                    },
-                    scaling: {
-                        min: 15,
-                        max: 40
-                    },
-                    physics: true
-                },
-                edges: {
-                    width: 1.5,
-                    color: { color: 'rgba(192, 192, 192, 0.15)' },
-                    smooth: {
-                        type: 'continuous',
-                        forceDirection: 'none'
-                    },
-                    arrows: {
-                        to: { enabled: false, scaleFactor: 0.5 }
-                    }
-                },
-                interaction: {
-                    navigationButtons: false,
-                    keyboard: false,
-                    hover: true,
-                    zoomView: true,
-                    dragView: true
-                },
-                configure: false
-            };
-
-            network = new vis.Network(container, data, options);
-
-            // ===== EVENT HANDLERS =====
-            network.on('click', function(params) {
-                if (params.nodes.length > 0) {
-                    const nodeId = params.nodes[0];
-                    const details = nodeDetails.get(nodeId);
-                    if (details) {
-                        showSidebar(details);
-                    }
-                }
-            });
-
-            network.on('hoverNode', function(params) {
-                const nodeId = params.node;
-                const details = nodeDetails.get(nodeId);
-                if (details) {
-                    showTooltip(params.event, details);
-                }
-            });
-
-            network.on('blurNode', function() {
-                hideTooltip();
-            });
-
-            // ===== SIDEBAR =====
-            function showSidebar(details) {
-                const sidebar = document.getElementById('sidebar');
-                const content = document.getElementById('sidebarContent');
-
-                let html = `<div class="node-title">${details.title}</div>`;
-                html += `<div class="node-detail">
-                    <div class="detail-label">Category</div>
-                    <div class="detail-value">${details.category}</div>
-                </div>`;
-                html += `<div class="node-detail">
-                    <div class="detail-label">Year</div>
-                    <div class="detail-value">${details.year}</div>
-                </div>`;
-                html += `<div class="node-detail">
-                    <div class="detail-label">Criticality</div>
-                    <div class="detail-value"><span class="detail-tag">${details.criticality.toUpperCase()}</span></div>
-                </div>`;
-                html += `<div class="node-detail">
-                    <div class="detail-label">Impact Metrics</div>
-                    <div class="detail-value">
-                        Relationships: ${details.relationships}<br>
-                        Links: ${details.linksFound}<br>
-                        Text: ${(details.textLength / 1000).toFixed(1)}k chars
-                    </div>
-                </div>`;
-                
-                if (details.applications && details.applications.length > 0) {
-                    html += `<div class="node-detail">
-                        <div class="detail-label">Applications</div>
-                        <div class="detail-value">`;
-                    details.applications.slice(0, 3).forEach(app => {
-                        html += `<div style="margin-bottom: 6px; font-size: 11px;">• ${app}</div>`;
-                    });
-                    html += `</div></div>`;
-                }
-
-                if (details.convergence && details.convergence.length > 0) {
-                    html += `<div class="node-detail">
-                        <div class="detail-label">Convergence</div>
-                        <div class="detail-value">`;
-                    details.convergence.slice(0, 3).forEach(field => {
-                        html += `<span class="detail-tag">${field}</span>`;
-                    });
-                    html += `</div></div>`;
-                }
-
-                html += `<div class="node-detail">
-                    <div class="detail-label">Description</div>
-                    <div class="detail-value">${details.description}</div>
-                </div>`;
-
-                content.innerHTML = html;
-                sidebar.classList.add('open');
-            }
-
-            function hideSidebar() {
-                document.getElementById('sidebar').classList.remove('open');
-            }
-
-            document.getElementById('closeSidebar').addEventListener('click', hideSidebar);
-
-            // ===== TOOLTIP =====
-            let tooltipElement;
-
-            function showTooltip(event, details) {
-                if (!tooltipElement) {
-                    tooltipElement = document.createElement('div');
-                    tooltipElement.className = 'tooltip';
-                    document.body.appendChild(tooltipElement);
-                }
-
-                let tooltipHtml = `<div class="tooltip-title">${details.title}</div>`;
-                tooltipHtml += `<div class="tooltip-text"><strong>Category:</strong> ${details.category}</div>`;
-                tooltipHtml += `<div class="tooltip-text"><strong>Year:</strong> ${details.year}</div>`;
-                tooltipHtml += `<div class="tooltip-text"><strong>Relationships:</strong> ${details.relationships}</div>`;
-
-                tooltipElement.innerHTML = tooltipHtml;
-                tooltipElement.style.display = 'block';
-                tooltipElement.style.position = 'fixed';
-                tooltipElement.style.left = (event.pageX + 10) + 'px';
-                tooltipElement.style.top = (event.pageY + 10) + 'px';
-                tooltipElement.style.zIndex = '1000';
-            }
-
-            function hideTooltip() {
-                if (tooltipElement) {
-                    tooltipElement.style.display = 'none';
-                }
-            }
-
-            // Track tooltip position
-            document.addEventListener('mousemove', function(e) {
-                if (tooltipElement && tooltipElement.style.display === 'block') {
-                    tooltipElement.style.left = (e.pageX + 10) + 'px';
-                    tooltipElement.style.top = (e.pageY + 10) + 'px';
-                }
-            });
-
-            // ===== FILTERS =====
-            const filterToggle = document.getElementById('filterToggle');
-            const filterOptions = document.getElementById('filterOptions');
-
-            filterToggle.addEventListener('change', function() {
-                filterOptions.classList.toggle('visible', this.checked);
-            });
-
-            // Populate category filters
-            const categoryFilter = document.getElementById('categoryFilter');
-            categories.forEach((nodes, category) => {
+        function populateFilters() {
+            const container = document.getElementById('categoryFilters');
+            categories.forEach((nodeIds, category) => {
                 const btn = document.createElement('button');
                 btn.className = 'filter-btn active';
                 btn.textContent = category;
@@ -754,70 +560,154 @@
                     this.classList.toggle('active');
                     applyFilters();
                 });
-                categoryFilter.appendChild(btn);
+                container.appendChild(btn);
             });
-
-            // Timeline filter buttons
-            const timelineButtons = document.querySelectorAll('[data-period]');
-            timelineButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('[data-period]').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    applyFilters();
-                });
-            });
-
-            function applyFilters() {
-                const activeCategories = new Set();
-                document.querySelectorAll('.category-filter .filter-btn.active').forEach(btn => {
-                    activeCategories.add(btn.dataset.category);
-                });
-
-                const activePeriod = document.querySelector('[data-period].active').dataset.period;
-
-                nodesCollection.forEach(node => {
-                    const details = nodeDetails.get(node.id);
-                    let showNode = activeCategories.has(details.category);
-
-                    if (activePeriod === 'past') {
-                        showNode = showNode && details.year < 2020;
-                    } else if (activePeriod === 'present') {
-                        showNode = showNode && details.year >= 2020 && details.year <= 2026;
-                    } else if (activePeriod === 'future') {
-                        showNode = showNode && details.year > 2026;
-                    }
-
-                    nodesCollection.update({ id: node.id, hidden: !showNode });
-                });
-            }
-
-            // ===== LEGEND =====
-            function populateLegend() {
-                const legend = document.getElementById('legend');
-                let html = '<strong style="color: #ffffff; display: block; margin-bottom: 10px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;">Color Legend</strong>';
-                html += '<div class="legend-item"><div class="legend-color" style="background: #4a4a4a;"></div><div class="legend-text">Historical (Pre-2020)</div></div>';
-                html += '<div class="legend-item"><div class="legend-color" style="background: #8a8a8a;"></div><div class="legend-text">Recent (2020-2026)</div></div>';
-                html += '<div class="legend-item"><div class="legend-color" style="background: #c0c0c0;"></div><div class="legend-text">Future (Post-2026)</div></div>';
-                legend.innerHTML = html;
-            }
-
-            // ===== INITIALIZATION =====
-            network.on('stabilizationIterationsDone', function() {
-                document.getElementById('loading').style.display = 'none';
-                network.setOptions({ physics: false });
-            });
-
-            populateLegend();
-
-            // Auto-stabilize after timeout
-            setTimeout(() => {
-                document.getElementById('loading').style.display = 'none';
-                network.setOptions({ physics: false });
-            }, 5000);
         }
 
-        // Load data on page load
-        loadData();
+        function applyFilters() {
+            const activeCategories = new Set();
+            document.querySelectorAll('.filter-btn.active').forEach(btn => {
+                activeCategories.add(btn.dataset.category);
+            });
+
+            nodes.forEach(node => {
+                const details = nodeDetails.get(node.userData.id);
+                node.visible = activeCategories.has(details.category);
+            });
+        }
+
+        function populateLegend() {
+            const legend = document.getElementById('legend');
+            let html = '<strong style="color: #ffffff; display: block; margin-bottom: 10px; font-size: 11px;">Timeline Colors</strong>';
+            html += '<div class="legend-item"><div class="legend-color" style="background: #4a4a4a;"></div><div class="legend-text">Historical</div></div>';
+            html += '<div class="legend-item"><div class="legend-color" style="background: #8a8a8a;"></div><div class="legend-text">Recent</div></div>';
+            html += '<div class="legend-item"><div class="legend-color" style="background: #c0c0c0;"></div><div class="legend-text">Future</div></div>';
+            legend.innerHTML = html;
+        }
+
+        function onMouseMove(event) {
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(nodes);
+
+            // Remove previous hover
+            if (hoveredNode && hoveredNode !== selectedNode) {
+                hoveredNode.material.emissiveIntensity = 0.2;
+            }
+
+            if (intersects.length > 0) {
+                hoveredNode = intersects[0].object;
+                if (hoveredNode !== selectedNode) {
+                    hoveredNode.material.emissiveIntensity = 0.6;
+                }
+                showTooltip(event, hoveredNode);
+            } else {
+                hoveredNode = null;
+                document.getElementById('tooltip').style.display = 'none';
+            }
+        }
+
+        function onMouseClick(event) {
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(nodes);
+
+            if (intersects.length > 0) {
+                selectedNode = intersects[0].object;
+                const details = nodeDetails.get(selectedNode.userData.id);
+                showSidebar(details);
+            }
+        }
+
+        function showTooltip(event, node) {
+            const details = nodeDetails.get(node.userData.id);
+            document.getElementById('tooltipTitle').textContent = details.title;
+            document.getElementById('tooltipText').innerHTML = `
+                <strong>Category:</strong> ${details.category}<br>
+                <strong>Year:</strong> ${details.year}<br>
+                <strong>Relationships:</strong> ${details.relationships}
+            `;
+
+            const tooltip = document.getElementById('tooltip');
+            tooltip.style.display = 'block';
+            tooltip.style.left = (event.clientX + 10) + 'px';
+            tooltip.style.top = (event.clientY + 10) + 'px';
+        }
+
+        function showSidebar(details) {
+            const sidebar = document.getElementById('sidebar');
+            const content = document.getElementById('sidebarContent');
+
+            let html = `<div class="node-title">${details.title}</div>`;
+            html += `<div class="node-detail">
+                <div class="detail-label">Category</div>
+                <div class="detail-value">${details.category}</div>
+            </div>`;
+            html += `<div class="node-detail">
+                <div class="detail-label">Year</div>
+                <div class="detail-value">${details.year}</div>
+            </div>`;
+            html += `<div class="node-detail">
+                <div class="detail-label">Criticality</div>
+                <div class="detail-value"><span class="detail-tag">${details.criticality.toUpperCase()}</span></div>
+            </div>`;
+            html += `<div class="node-detail">
+                <div class="detail-label">Impact</div>
+                <div class="detail-value">
+                    Relationships: ${details.relationships}<br>
+                    Links: ${details.linksFound}<br>
+                    Text: ${(details.textLength / 1000).toFixed(1)}k chars
+                </div>
+            </div>`;
+
+            if (details.applications && details.applications.length > 0) {
+                html += `<div class="node-detail">
+                    <div class="detail-label">Applications</div>
+                    <div class="detail-value">`;
+                details.applications.slice(0, 3).forEach(app => {
+                    html += `<div style="margin-bottom: 6px; font-size: 11px;">• ${app}</div>`;
+                });
+                html += `</div></div>`;
+            }
+
+            if (details.convergence && details.convergence.length > 0) {
+                html += `<div class="node-detail">
+                    <div class="detail-label">Convergence</div>
+                    <div class="detail-value">`;
+                details.convergence.slice(0, 3).forEach(field => {
+                    html += `<span class="detail-tag">${field}</span>`;
+                });
+                html += `</div></div>`;
+            }
+
+            html += `<div class="node-detail">
+                <div class="detail-label">Description</div>
+                <div class="detail-value">${details.description}</div>
+            </div>`;
+
+            content.innerHTML = html;
+            sidebar.classList.add('open');
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // Initialize when data is loaded
+        if (typeof ROBOTICS_DATA !== 'undefined') {
+            initThreeJS();
+        } else {
+            console.error('Data not loaded');
+        }
     </script>
 </body>
 </html>
