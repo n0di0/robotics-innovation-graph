@@ -8,18 +8,16 @@
   <style>
     :root {
       --bg: #0b0d10;
-      --panel: #11151b;
-      --panel-2: #151b22;
+      --panel: #10141a;
+      --panel2: #151b22;
       --text: #eef2f6;
-      --muted: #9aa5b1;
+      --muted: #97a3af;
       --line: #2a313b;
-      --node: #d6dbe3;
       --existing: #b9c0ca;
       --emerging: #d7a94b;
       --category: #7f8cff;
       --accent: #d4af37;
       --highlight: #ffffff;
-      --dim: rgba(255,255,255,0.12);
       --shadow: 0 12px 36px rgba(0,0,0,0.45);
     }
 
@@ -28,7 +26,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: radial-gradient(circle at top, #131821 0%, #0b0d10 60%);
+      background: radial-gradient(circle at top, #141922 0%, #0b0d10 62%);
       color: var(--text);
       font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
@@ -46,18 +44,18 @@
     }
 
     #sidebar {
-      width: 360px;
+      width: 380px;
       min-width: 320px;
-      max-width: 420px;
-      background: linear-gradient(180deg, var(--panel) 0%, var(--panel-2) 100%);
+      max-width: 440px;
+      background: linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
       border-left: 1px solid rgba(255,255,255,0.08);
       box-shadow: var(--shadow);
-      padding: 20px 18px;
+      padding: 18px;
       overflow-y: auto;
     }
 
     #sidebar h2 {
-      margin: 0 0 10px;
+      margin: 0 0 8px;
       font-size: 20px;
       letter-spacing: 0.02em;
     }
@@ -65,7 +63,7 @@
     #sidebar .sub {
       color: var(--muted);
       font-size: 13px;
-      margin-bottom: 18px;
+      margin-bottom: 16px;
       line-height: 1.5;
     }
 
@@ -85,7 +83,7 @@
 
     .kv {
       display: grid;
-      grid-template-columns: 120px 1fr;
+      grid-template-columns: 130px 1fr;
       gap: 8px 12px;
       font-size: 13px;
       line-height: 1.45;
@@ -93,11 +91,13 @@
 
     .k {
       color: var(--muted);
+      word-break: break-word;
     }
 
     .v {
       color: var(--text);
       word-break: break-word;
+      white-space: pre-wrap;
     }
 
     #tooltip {
@@ -109,7 +109,7 @@
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 10px;
       padding: 10px 12px;
-      max-width: 340px;
+      max-width: 360px;
       font-size: 13px;
       line-height: 1.45;
       box-shadow: var(--shadow);
@@ -150,7 +150,7 @@
       margin-top: 10px;
       font-size: 12px;
       color: var(--muted);
-      max-width: 280px;
+      max-width: 300px;
       line-height: 1.4;
     }
 
@@ -158,6 +158,12 @@
       width: 100%;
       height: 100%;
       display: block;
+    }
+
+    .cluster-band {
+      fill: rgba(255,255,255,0.02);
+      stroke: rgba(255,255,255,0.06);
+      stroke-width: 1;
     }
 
     .cluster-label {
@@ -168,18 +174,22 @@
       pointer-events: none;
     }
 
-    .cluster-band {
-      fill: rgba(255,255,255,0.02);
+    .gridline {
       stroke: rgba(255,255,255,0.06);
       stroke-width: 1;
+    }
+
+    .axis-label {
+      fill: rgba(255,255,255,0.30);
+      font-size: 11px;
     }
 
     .link {
       fill: none;
       stroke: rgba(255,255,255,0.2);
-      stroke-width: 1.2;
-      stroke-linecap: round;
+      stroke-width: 1.25;
       opacity: 0.85;
+      stroke-linecap: round;
     }
 
     .link.highlight {
@@ -190,6 +200,10 @@
 
     .link.dim {
       opacity: 0.08;
+    }
+
+    .node {
+      cursor: pointer;
     }
 
     .node circle {
@@ -203,13 +217,9 @@
       font-size: 12px;
       pointer-events: none;
       paint-order: stroke;
-      stroke: rgba(11,13,16,0.85);
+      stroke: rgba(11,13,16,0.9);
       stroke-width: 4px;
       stroke-linejoin: round;
-    }
-
-    .node.dim {
-      opacity: 0.15;
     }
 
     .node.highlight circle {
@@ -222,14 +232,8 @@
       stroke-width: 2.8;
     }
 
-    .gridline {
-      stroke: rgba(255,255,255,0.06);
-      stroke-width: 1;
-    }
-
-    .axis-label {
-      fill: rgba(255,255,255,0.3);
-      font-size: 11px;
+    .node.dim {
+      opacity: 0.14;
     }
   </style>
 </head>
@@ -241,7 +245,7 @@
         <div class="legend-row"><span class="swatch" style="background: var(--existing);"></span> Existing innovation</div>
         <div class="legend-row"><span class="swatch" style="background: var(--emerging);"></span> Emerging technology</div>
         <div class="legend-row"><span class="swatch" style="background: var(--category);"></span> Robotics category</div>
-        <div id="hint">Click a node to reveal all ancestor and descendant paths. Hover for description. Drag nodes slightly if needed; scroll to zoom.</div>
+        <div id="hint">Click a node to highlight ancestor and descendant paths. Hover for description. Scroll to zoom.</div>
       </div>
       <div id="tooltip"></div>
       <svg id="svg"></svg>
@@ -255,20 +259,18 @@
 
   <script>
     const svg = d3.select("#svg");
-    const wrap = document.querySelector("#graph-wrap");
+    const wrap = document.getElementById("graph-wrap");
     const tooltip = document.getElementById("tooltip");
     const sidebarTitle = document.getElementById("panel-title");
     const sidebarSub = document.getElementById("panel-sub");
     const sidebarContent = document.getElementById("panel-content");
 
-    const width = () => wrap.clientWidth;
-    const height = () => wrap.clientHeight;
-
     const gRoot = svg.append("g");
-    const gLinks = gRoot.append("g").attr("class", "links");
-    const gBands = gRoot.append("g").attr("class", "bands");
-    const gNodes = gRoot.append("g").attr("class", "nodes");
-    const gLabels = gRoot.append("g").attr("class", "labels");
+    const gBands = gRoot.append("g");
+    const gGrid = gRoot.append("g");
+    const gLinks = gRoot.append("g");
+    const gNodes = gRoot.append("g");
+    const gLabels = gRoot.append("g");
 
     const zoom = d3.zoom()
       .scaleExtent([0.35, 2.5])
@@ -276,25 +278,21 @@
 
     svg.call(zoom);
 
-    let graphData = null;
     let nodes = [];
     let links = [];
     let nodeById = new Map();
     let selectedId = null;
 
-    const colorFor = d => {
-      const type = (d.node_type || d.type || d.category_type || "").toLowerCase();
-      const emerging = String(d.stage || d.status || d.temporal_state || "").toLowerCase().includes("emerg");
-      const category = String(d.category || d.kind || "").toLowerCase().includes("category");
-      if (category) return getComputedStyle(document.documentElement).getPropertyValue("--category").trim();
-      if (emerging || type.includes("emerg")) return getComputedStyle(document.documentElement).getPropertyValue("--emerging").trim();
-      return getComputedStyle(document.documentElement).getPropertyValue("--existing").trim();
-    };
+    function getLabel(d) {
+      return d.title || d.name || d.label || d.id || "Untitled";
+    }
 
-    const getLabel = d => d.name || d.title || d.label || d.id || "Untitled";
-    const getDescription = d => d.description || d.desc || d.summary || "No description available.";
-    const getYearValue = d => {
-      const candidates = [d.year, d.date, d.start_year, d.end_year, d.timestamp, d.period_start, d.period_end];
+    function getDescription(d) {
+      return d.description || d.desc || d.summary || d.text || "No description available.";
+    }
+
+    function getYearValue(d) {
+      const candidates = [d.year, d.date, d.start_year, d.end_year, d.timestamp, d.timelineorigin, d.maturationtimeline];
       for (const c of candidates) {
         if (typeof c === "number" && isFinite(c)) return c;
         if (typeof c === "string") {
@@ -302,54 +300,102 @@
           if (m) return +m[1];
         }
       }
-      return 9999;
-    };
-
-    function normalize(raw) {
-      let n = [];
-      let l = [];
-
-      if (Array.isArray(raw)) {
-        if (raw.length && raw[0].source && raw[0].target) {
-          const ids = new Set();
-          raw.forEach(e => { ids.add(e.source); ids.add(e.target); });
-          n = Array.from(ids).map(id => ({ id }));
-          l = raw.map(e => ({ source: e.source, target: e.target, ...e }));
-        } else {
-          n = raw;
-          l = [];
-        }
-      } else if (raw && typeof raw === "object") {
-        n = raw.nodes || raw.items || raw.entities || raw.data || [];
-        l = raw.links || raw.edges || raw.relationships || raw.connections || [];
-        if ((!n || !n.length) && raw.graph) {
-          n = raw.graph.nodes || [];
-          l = raw.graph.links || raw.graph.edges || [];
-        }
+      const ym = d.yearmentions;
+      if (Array.isArray(ym) && ym.length) {
+        const nums = ym.map(v => +String(v).match(/(\d{4})/)?.[1]).filter(Number.isFinite);
+        if (nums.length) return d3.min(nums);
       }
-
-      n = n.map((d, i) => ({
-        ...d,
-        id: d.id || d._id || d.key || `node-${i}`,
-        label: getLabel(d),
-        description: getDescription(d),
-        yearSort: getYearValue(d)
-      }));
-
-      l = l.map((d, i) => ({
-        ...d,
-        id: d.id || `link-${i}`,
-        source: d.source,
-        target: d.target,
-        relationship: d.relationship || d.type || d.label || ""
-      }));
-
-      return { nodes: n, links: l };
+      return 9999;
     }
 
-    function deriveHierarchies(nodes, links) {
+    function clusterKey(d) {
+      return d.cluster || d.group || d.category || d.domain || d.field || d.parent || "Other";
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/[&<>"']/g, s => ({
+        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+      }[s]));
+    }
+
+    function resolveNodeId(value, nodeIds, labelToId) {
+      if (value == null) return null;
+      if (typeof value === "object") {
+        if (value.id != null) value = value.id;
+        else if (value.title != null) value = value.title;
+        else if (value.name != null) value = value.name;
+        else return null;
+      }
+      const key = String(value);
+      if (nodeIds.has(key)) return key;
+      const byLabel = labelToId.get(key.toLowerCase());
+      if (byLabel) return byLabel;
+      return null;
+    }
+
+    function extractArrays(raw) {
+      if (Array.isArray(raw)) {
+        if (raw.length && (raw[0].source !== undefined || raw[0].target !== undefined)) {
+          return { nodes: [], links: raw };
+        }
+        return { nodes: raw, links: [] };
+      }
+      if (raw && typeof raw === "object") {
+        let nodes = raw.nodes || raw.items || raw.entities || raw.data || raw.records || [];
+        let links = raw.links || raw.edges || raw.relationships || raw.connections || [];
+        if ((!nodes || !nodes.length) && raw.graph) {
+          nodes = raw.graph.nodes || [];
+          links = raw.graph.links || raw.graph.edges || [];
+        }
+        return { nodes, links };
+      }
+      return { nodes: [], links: [] };
+    }
+
+    function normalize(raw) {
+      const extracted = extractArrays(raw);
+      let rawNodes = extracted.nodes || [];
+      let rawLinks = extracted.links || [];
+
+      rawNodes = rawNodes.map((d, i) => ({
+        ...d,
+        id: String(d.id || d._id || d.key || d.title || d.name || d.label || `node-${i}`),
+        label: getLabel(d),
+        description: getDescription(d),
+        yearSort: getYearValue(d),
+        cluster: clusterKey(d)
+      }));
+
+      const nodeIds = new Set(rawNodes.map(n => String(n.id)));
+      const labelToId = new Map(rawNodes.map(n => [String(n.label).toLowerCase(), String(n.id)]));
+
+      const resolvedLinks = rawLinks.map((d, i) => {
+        const sourceRaw = typeof d.source === "object" ? d.source.id || d.source.title || d.source.name : d.source;
+        const targetRaw = typeof d.target === "object" ? d.target.id || d.target.title || d.target.name : d.target;
+        const source = resolveNodeId(sourceRaw, nodeIds, labelToId);
+        const target = resolveNodeId(targetRaw, nodeIds, labelToId);
+
+        if (!source || !target) {
+          console.warn("Skipping unresolved link", { index: i, sourceRaw, targetRaw, link: d });
+          return null;
+        }
+
+        return {
+          ...d,
+          id: d.id || `link-${i}`,
+          source,
+          target,
+          relationship: d.relationship || d.type || d.label || ""
+        };
+      }).filter(Boolean);
+
+      return { nodes: rawNodes, links: resolvedLinks };
+    }
+
+    function deriveGraph(nodes, links) {
       const incoming = new Map(nodes.map(n => [n.id, []]));
       const outgoing = new Map(nodes.map(n => [n.id, []]));
+
       links.forEach(l => {
         const s = typeof l.source === "object" ? l.source.id : l.source;
         const t = typeof l.target === "object" ? l.target.id : l.target;
@@ -384,8 +430,35 @@
       return { incoming, outgoing, ancestors, descendants };
     }
 
-    function clusterKey(d) {
-      return d.cluster || d.group || d.category || d.domain || d.field || "Other";
+    function colorFor(d) {
+      const t = String(d.node_type || d.type || d.kind || d.stage || d.status || "").toLowerCase();
+      const emerg = t.includes("emerg") || t.includes("future") || t.includes("prediction");
+      const cat = t.includes("category") || t.includes("taxonomy") || t.includes("cluster");
+      if (cat) return getComputedStyle(document.documentElement).getPropertyValue("--category").trim();
+      if (emerg) return getComputedStyle(document.documentElement).getPropertyValue("--emerging").trim();
+      return getComputedStyle(document.documentElement).getPropertyValue("--existing").trim();
+    }
+
+    function updateSidebar(d) {
+      sidebarTitle.textContent = d.label;
+      sidebarSub.textContent = `${d.cluster || "Unclustered"} • ${d.yearSort === 9999 ? "Date unknown" : d.yearSort}`;
+
+      const entries = Object.entries(d).filter(([k, v]) => {
+        return !["x","y","vx","vy","fx","fy","index","label","description","yearSort"].includes(k) && v !== undefined && v !== null && v !== "";
+      });
+
+      sidebarContent.innerHTML = `
+        <div class="meta-section">
+          <h3>Description</h3>
+          <div class="v">${escapeHtml(d.description)}</div>
+        </div>
+        <div class="meta-section">
+          <h3>Metadata</h3>
+          <div class="kv">
+            ${entries.map(([k, v]) => `<div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(typeof v === "object" ? JSON.stringify(v, null, 2) : v)}</div>`).join("")}
+          </div>
+        </div>
+      `;
     }
 
     function render(raw) {
@@ -393,82 +466,81 @@
       nodes = normalized.nodes;
       links = normalized.links;
       nodeById = new Map(nodes.map(d => [d.id, d]));
-      const { incoming, outgoing, ancestors, descendants } = deriveHierarchies(nodes, links);
 
-      nodes.sort((a, b) => d3.ascending(a.yearSort, b.yearSort) || d3.ascending(getLabel(a), getLabel(b)));
+      const { incoming, outgoing, ancestors, descendants } = deriveGraph(nodes, links);
 
-      const margin = { top: 88, right: 40, bottom: 60, left: 40 };
-      const innerW = width() - margin.left - margin.right;
-      const innerH = height() - margin.top - margin.bottom;
+      nodes.sort((a, b) => d3.ascending(a.yearSort, b.yearSort) || d3.ascending(a.label, b.label));
 
-      svg.attr("viewBox", [0, 0, width(), height()]);
+      const w = wrap.clientWidth;
+      const h = wrap.clientHeight;
+      const margin = { top: 90, right: 40, bottom: 55, left: 40 };
+      const innerW = Math.max(400, w - margin.left - margin.right);
+      const innerH = Math.max(300, h - margin.top - margin.bottom);
+
+      svg.attr("viewBox", [0, 0, w, h]);
       gRoot.attr("transform", `translate(${margin.left},${margin.top})`);
 
+      const extent = d3.extent(nodes, d => d.yearSort);
+      if (!isFinite(extent[0]) || !isFinite(extent[1])) {
+        extent[0] = 1900;
+        extent[1] = 2035;
+      }
+
       const xScale = d3.scaleLinear()
-        .domain(d3.extent(nodes, d => d.yearSort))
-        .range([90, Math.max(110, innerW - 120)]);
+        .domain(extent)
+        .range([90, innerW - 100]);
 
       const clusters = Array.from(d3.group(nodes, clusterKey), ([key, vals]) => ({ key, vals }));
-      const color = d3.scaleOrdinal()
-        .domain(clusters.map(d => d.key))
-        .range(d3.schemeTableau10.concat(["#9b7cff", "#6bc1ff", "#ffd166"]));
-
-      clusters.forEach(c => {
-        c.minX = d3.min(c.vals, d => xScale(d.yearSort));
-        c.maxX = d3.max(c.vals, d => xScale(d.yearSort));
-      });
-
-      const yPerCluster = d3.scaleBand()
+      const yScale = d3.scaleBand()
         .domain(clusters.map(d => d.key))
         .range([20, innerH - 30])
         .padding(0.28);
 
       nodes.forEach(n => {
-        const cluster = clusterKey(n);
-        n.fx = xScale(n.yearSort) + (Math.random() - 0.5) * 14;
-        n.fy = yPerCluster(cluster) + yPerCluster.bandwidth() / 2;
-        n.cluster = cluster;
+        n.x = xScale(n.yearSort);
+        n.y = yScale(n.cluster) + yScale.bandwidth() / 2;
       });
 
       const sim = d3.forceSimulation(nodes)
-        .force("x", d3.forceX(d => xScale(d.yearSort)).strength(0.9))
-        .force("y", d3.forceY(d => yPerCluster(d.cluster) + yPerCluster.bandwidth()/2).strength(0.8))
+        .force("x", d3.forceX(d => xScale(d.yearSort)).strength(0.85))
+        .force("y", d3.forceY(d => yScale(d.cluster) + yScale.bandwidth() / 2).strength(0.8))
         .force("collide", d3.forceCollide(18))
-        .force("charge", d3.forceManyBody().strength(-14))
-        .force("link", d3.forceLink(links).id(d => d.id).distance(65).strength(0.15))
+        .force("charge", d3.forceManyBody().strength(-16))
+        .force("link", d3.forceLink(links).id(d => d.id).distance(66).strength(0.12))
         .stop();
 
       for (let i = 0; i < 260; i++) sim.tick();
 
       gBands.selectAll("*").remove();
-      gLabels.selectAll("*").remove();
+      gGrid.selectAll("*").remove();
       gLinks.selectAll("*").remove();
       gNodes.selectAll("*").remove();
+      gLabels.selectAll("*").remove();
 
-      const bands = gBands.selectAll(".cluster-band")
+      gBands.selectAll("rect")
         .data(clusters)
         .enter()
         .append("rect")
         .attr("class", "cluster-band")
         .attr("x", 0)
-        .attr("y", d => yPerCluster(d.key) - 12)
+        .attr("y", d => yScale(d.key) - 12)
         .attr("width", innerW)
-        .attr("height", yPerCluster.bandwidth() + 24)
+        .attr("height", yScale.bandwidth() + 24)
         .attr("rx", 16)
         .attr("ry", 16);
 
-      gLabels.selectAll(".cluster-label")
+      gBands.selectAll("text")
         .data(clusters)
         .enter()
         .append("text")
         .attr("class", "cluster-label")
         .attr("x", 10)
-        .attr("y", d => yPerCluster(d.key) - 16)
+        .attr("y", d => yScale(d.key) - 16)
         .text(d => d.key);
 
-      const gridYears = xScale.ticks(Math.min(12, nodes.length));
-      gRoot.append("g").selectAll(".gridline")
-        .data(gridYears)
+      const ticks = xScale.ticks(Math.min(12, nodes.length));
+      gGrid.selectAll("line")
+        .data(ticks)
         .enter()
         .append("line")
         .attr("class", "gridline")
@@ -477,8 +549,8 @@
         .attr("y1", -8)
         .attr("y2", innerH + 10);
 
-      gRoot.append("g").selectAll(".axis-label")
-        .data(gridYears)
+      gGrid.selectAll("text")
+        .data(ticks)
         .enter()
         .append("text")
         .attr("class", "axis-label")
@@ -487,31 +559,30 @@
         .attr("text-anchor", "middle")
         .text(d => d);
 
-      const linkSel = gLinks.selectAll(".link")
+      const linkSel = gLinks.selectAll("path")
         .data(links)
         .enter()
         .append("path")
         .attr("class", "link")
         .attr("d", d => {
-          const s = typeof d.source === "object" ? d.source : nodeById.get(d.source);
-          const t = typeof d.target === "object" ? d.target : nodeById.get(d.target);
+          const s = nodeById.get(typeof d.source === "object" ? d.source.id : d.source);
+          const t = nodeById.get(typeof d.target === "object" ? d.target.id : d.target);
           if (!s || !t) return "";
-          const dx = Math.max(20, Math.abs(t.x - s.x) * 0.5);
+          const dx = Math.max(22, Math.abs(t.x - s.x) * 0.45);
           return `M${s.x},${s.y} C${s.x + dx},${s.y} ${t.x - dx},${t.y} ${t.x},${t.y}`;
         });
 
-      const nodeSel = gNodes.selectAll(".node")
+      const nodeSel = gNodes.selectAll("g")
         .data(nodes)
         .enter()
         .append("g")
         .attr("class", "node")
         .attr("transform", d => `translate(${d.x},${d.y})`)
-        .style("cursor", "pointer")
         .on("mousemove", (event, d) => {
           tooltip.style.opacity = 1;
           tooltip.style.left = event.offsetX + "px";
           tooltip.style.top = event.offsetY + "px";
-          tooltip.innerHTML = `<strong>${d.label}</strong><br>${d.description}`;
+          tooltip.innerHTML = `<strong>${escapeHtml(d.label)}</strong><br>${escapeHtml(d.description)}`;
         })
         .on("mouseleave", () => {
           tooltip.style.opacity = 0;
@@ -535,10 +606,10 @@
             d.y = event.y;
             nodeSel.attr("transform", n => `translate(${n.x},${n.y})`);
             linkSel.attr("d", l => {
-              const s = typeof l.source === "object" ? l.source : nodeById.get(l.source);
-              const t = typeof l.target === "object" ? l.target : nodeById.get(l.target);
+              const s = nodeById.get(typeof l.source === "object" ? l.source.id : l.source);
+              const t = nodeById.get(typeof l.target === "object" ? l.target.id : l.target);
               if (!s || !t) return "";
-              const dx = Math.max(20, Math.abs(t.x - s.x) * 0.5);
+              const dx = Math.max(22, Math.abs(t.x - s.x) * 0.45);
               return `M${s.x},${s.y} C${s.x + dx},${s.y} ${t.x - dx},${t.y} ${t.x},${t.y}`;
             });
           })
@@ -546,12 +617,13 @@
             if (!event.active) sim.alphaTarget(0);
             d.fx = null;
             d.fy = null;
-          }));
+          })
+        );
 
       nodeSel.append("circle")
         .attr("r", d => {
           const degree = (incoming.get(d.id)?.length || 0) + (outgoing.get(d.id)?.length || 0);
-          return 7.5 + Math.min(9, degree * 0.65);
+          return 7.5 + Math.min(9, degree * 0.55);
         })
         .attr("fill", d => colorFor(d));
 
@@ -562,46 +634,28 @@
 
       function updateHighlights() {
         const selected = selectedId ? nodeById.get(selectedId) : null;
-        const ancestorSet = selected ? ancestors(selected.id) : new Set();
-        const descendantSet = selected ? descendants(selected.id) : new Set();
-        const pathSet = new Set([selectedId, ...ancestorSet, ...descendantSet].filter(Boolean));
+        const anc = selected ? ancestors(selected.id) : new Set();
+        const des = selected ? descendants(selected.id) : new Set();
+        const activeNodes = new Set([selectedId, ...anc, ...des].filter(Boolean));
 
-        nodeSel.classed("highlight", d => selected && pathSet.has(d.id))
+        nodeSel
+          .classed("highlight", d => selected && activeNodes.has(d.id))
           .classed("selected", d => selected && d.id === selected.id)
-          .classed("dim", d => selected && !pathSet.has(d.id));
+          .classed("dim", d => selected && !activeNodes.has(d.id));
 
-        linkSel.classed("highlight", d => {
-          if (!selected) return false;
-          const s = typeof d.source === "object" ? d.source.id : d.source;
-          const t = typeof d.target === "object" ? d.target.id : d.target;
-          return (ancestorSet.has(s) && pathSet.has(t)) || (pathSet.has(s) && descendantSet.has(t)) || (s === selected.id || t === selected.id);
-        }).classed("dim", d => {
-          if (!selected) return false;
-          const s = typeof d.source === "object" ? d.source.id : d.source;
-          const t = typeof d.target === "object" ? d.target.id : d.target;
-          return !((ancestorSet.has(s) && pathSet.has(t)) || (pathSet.has(s) && descendantSet.has(t)) || (s === selected.id || t === selected.id));
-        });
-      }
-
-      function updateSidebar(d) {
-        sidebarTitle.textContent = d.label;
-        sidebarSub.textContent = `${d.cluster || "Unclustered"} • ${d.yearSort === 9999 ? "Date unknown" : d.yearSort}`;
-        const entries = Object.entries(d).filter(([k, v]) => {
-          if (["x","y","vx","vy","fx","fy","index","description","label","yearSort","cluster"].includes(k)) return false;
-          return v !== null && v !== undefined && v !== "";
-        });
-
-        const blocks = [];
-        blocks.push(`<div class="meta-section"><h3>Description</h3><div>${d.description}</div></div>`);
-        blocks.push(`<div class="meta-section"><h3>Metadata</h3><div class="kv">${entries.map(([k,v]) => {
-          const val = typeof v === "object" ? JSON.stringify(v, null, 2) : String(v);
-          return `<div class="k">${k}</div><div class="v">${escapeHtml(val)}</div>`;
-        }).join("")}</div></div>`);
-        sidebarContent.innerHTML = blocks.join("");
-      }
-
-      function escapeHtml(str) {
-        return str.replace(/[&<>"']/g, s => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[s]));
+        linkSel
+          .classed("highlight", d => {
+            if (!selected) return false;
+            const s = typeof d.source === "object" ? d.source.id : d.source;
+            const t = typeof d.target === "object" ? d.target.id : d.target;
+            return activeNodes.has(s) && activeNodes.has(t);
+          })
+          .classed("dim", d => {
+            if (!selected) return false;
+            const s = typeof d.source === "object" ? d.source.id : d.source;
+            const t = typeof d.target === "object" ? d.target.id : d.target;
+            return !(activeNodes.has(s) && activeNodes.has(t));
+          });
       }
 
       updateHighlights();
@@ -615,18 +669,21 @@
       });
 
       window.addEventListener("resize", () => {
-        const w = width(), h = height();
-        svg.attr("viewBox", [0, 0, w, h]);
-      });
+        render(raw);
+      }, { once: true });
     }
 
     fetch("robotics_knowledge_base_with_predictions.json")
-      .then(r => r.json())
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then(data => render(data))
       .catch(err => {
         sidebarTitle.textContent = "Could not load JSON";
         sidebarSub.textContent = "Check file path and browser permissions.";
-        sidebarContent.innerHTML = `<div class="meta-section"><h3>Error</h3><div class="v">${String(err)}</div></div>`;
+        sidebarContent.innerHTML = `<div class="meta-section"><h3>Error</h3><div class="v">${escapeHtml(String(err))}</div></div>`;
+        console.error(err);
       });
   </script>
 </body>
