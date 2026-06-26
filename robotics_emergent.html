@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Robotics Innovation Graph — Emergent</title>
+  <link rel="stylesheet" href="robotics_emergent.css" />
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+<div id="app">
+  <div id="graph-wrap">
+    <div id="legend">
+      <div style="font-weight:600;color:#fff;">Emergent Robotics</div>
+      <div class="legend-row"><span class="swatch" style="background:var(--emerging)"></span> Most emergent technology</div>
+      <div class="legend-row"><span class="swatch" style="background:var(--category)"></span> Enabling category</div>
+      <div id="hint">Click a node to inspect bottlenecks. Hover for quick info. Scroll to zoom.</div>
+    </div>
+    <div class="tabbar">
+      <button class="tab" onclick="window.location.href='index.html'">Main graph</button>
+      <button class="tab active">Emergent tab</button>
+    </div>
+    <div id="tooltip"></div>
+    <svg id="svg"></svg>
+  </div>
+  <aside id="sidebar">
+    <h2 id="panel-title">Select a node</h2>
+    <div class="sub" id="panel-sub">Metadata will appear here.</div>
+    <div id="panel-content"></div>
+  </aside>
+</div>
+<script src="robotics_emergent.js"></script>
+</body>
+</html>
