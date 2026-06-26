@@ -6,685 +6,267 @@
   <title>Robotics Innovation Graph</title>
   <script src="https://d3js.org/d3.v7.min.js"></script>
   <style>
-    :root {
-      --bg: #0b0d10;
-      --panel: #10141a;
-      --panel2: #151b22;
-      --text: #eef2f6;
-      --muted: #97a3af;
-      --line: #2a313b;
-      --existing: #b9c0ca;
-      --emerging: #d7a94b;
-      --category: #7f8cff;
-      --accent: #d4af37;
-      --highlight: #ffffff;
-      --shadow: 0 12px 36px rgba(0,0,0,0.45);
+    :root{
+      --bg:#0b0d10; --panel:#10141a; --panel2:#151b22; --text:#eef2f6; --muted:#97a3af;
+      --existing:#b9c0ca; --emerging:#d7a94b; --category:#7f8cff; --accent:#d4af37;
+      --shadow:0 12px 36px rgba(0,0,0,.45);
     }
-
-    html, body {
-      margin: 0;
-      width: 100%;
-      height: 100%;
-      overflow: hidden;
-      background: radial-gradient(circle at top, #141922 0%, #0b0d10 62%);
-      color: var(--text);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    }
-
-    #app {
-      display: flex;
-      width: 100vw;
-      height: 100vh;
-    }
-
-    #graph-wrap {
-      flex: 1;
-      position: relative;
-      overflow: hidden;
-    }
-
-    #sidebar {
-      width: 380px;
-      min-width: 320px;
-      max-width: 440px;
-      background: linear-gradient(180deg, var(--panel) 0%, var(--panel2) 100%);
-      border-left: 1px solid rgba(255,255,255,0.08);
-      box-shadow: var(--shadow);
-      padding: 18px;
-      overflow-y: auto;
-    }
-
-    #sidebar h2 {
-      margin: 0 0 8px;
-      font-size: 20px;
-      letter-spacing: 0.02em;
-    }
-
-    #sidebar .sub {
-      color: var(--muted);
-      font-size: 13px;
-      margin-bottom: 16px;
-      line-height: 1.5;
-    }
-
-    .meta-section {
-      margin-bottom: 18px;
-      border-top: 1px solid rgba(255,255,255,0.08);
-      padding-top: 14px;
-    }
-
-    .meta-section h3 {
-      margin: 0 0 8px;
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #cfd6df;
-    }
-
-    .kv {
-      display: grid;
-      grid-template-columns: 130px 1fr;
-      gap: 8px 12px;
-      font-size: 13px;
-      line-height: 1.45;
-    }
-
-    .k {
-      color: var(--muted);
-      word-break: break-word;
-    }
-
-    .v {
-      color: var(--text);
-      word-break: break-word;
-      white-space: pre-wrap;
-    }
-
-    #tooltip {
-      position: absolute;
-      pointer-events: none;
-      opacity: 0;
-      background: rgba(8,10,13,0.96);
-      color: white;
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 10px;
-      padding: 10px 12px;
-      max-width: 360px;
-      font-size: 13px;
-      line-height: 1.45;
-      box-shadow: var(--shadow);
-      transform: translate(12px, 12px);
-      z-index: 10;
-    }
-
-    #legend {
-      position: absolute;
-      left: 18px;
-      top: 18px;
-      background: rgba(10,12,15,0.75);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 14px;
-      padding: 12px 14px;
-      box-shadow: var(--shadow);
-      z-index: 5;
-      font-size: 13px;
-    }
-
-    .legend-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-top: 8px;
-      color: var(--muted);
-    }
-
-    .swatch {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      border: 1px solid rgba(255,255,255,0.25);
-    }
-
-    #hint {
-      margin-top: 10px;
-      font-size: 12px;
-      color: var(--muted);
-      max-width: 300px;
-      line-height: 1.4;
-    }
-
-    svg {
-      width: 100%;
-      height: 100%;
-      display: block;
-    }
-
-    .cluster-band {
-      fill: rgba(255,255,255,0.02);
-      stroke: rgba(255,255,255,0.06);
-      stroke-width: 1;
-    }
-
-    .cluster-label {
-      font-size: 12px;
-      fill: rgba(255,255,255,0.35);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      pointer-events: none;
-    }
-
-    .gridline {
-      stroke: rgba(255,255,255,0.06);
-      stroke-width: 1;
-    }
-
-    .axis-label {
-      fill: rgba(255,255,255,0.30);
-      font-size: 11px;
-    }
-
-    .link {
-      fill: none;
-      stroke: rgba(255,255,255,0.2);
-      stroke-width: 1.25;
-      opacity: 0.85;
-      stroke-linecap: round;
-    }
-
-    .link.highlight {
-      stroke: #ffffff;
-      stroke-width: 2.6;
-      opacity: 1;
-    }
-
-    .link.dim {
-      opacity: 0.08;
-    }
-
-    .node {
-      cursor: pointer;
-    }
-
-    .node circle {
-      stroke: rgba(255,255,255,0.35);
-      stroke-width: 1.2;
-      filter: drop-shadow(0 6px 12px rgba(0,0,0,0.4));
-    }
-
-    .node text {
-      fill: var(--text);
-      font-size: 12px;
-      pointer-events: none;
-      paint-order: stroke;
-      stroke: rgba(11,13,16,0.9);
-      stroke-width: 4px;
-      stroke-linejoin: round;
-    }
-
-    .node.highlight circle {
-      stroke: #ffffff;
-      stroke-width: 2.2;
-    }
-
-    .node.selected circle {
-      stroke: var(--accent);
-      stroke-width: 2.8;
-    }
-
-    .node.dim {
-      opacity: 0.14;
-    }
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:radial-gradient(circle at top,#141922 0%,#0b0d10 62%);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;}
+    #app{display:flex;width:100vw;height:100vh;}
+    #graph-wrap{flex:1;position:relative;overflow:hidden;}
+    #sidebar{width:380px;min-width:320px;max-width:440px;background:linear-gradient(180deg,var(--panel) 0%,var(--panel2) 100%);border-left:1px solid rgba(255,255,255,.08);box-shadow:var(--shadow);padding:18px;overflow-y:auto;}
+    #sidebar h2{margin:0 0 8px;font-size:20px;}
+    #sidebar .sub{color:var(--muted);font-size:13px;margin-bottom:16px;line-height:1.5;}
+    .meta-section{margin-bottom:18px;border-top:1px solid rgba(255,255,255,.08);padding-top:14px;}
+    .meta-section h3{margin:0 0 8px;font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:#cfd6df;}
+    .kv{display:grid;grid-template-columns:130px 1fr;gap:8px 12px;font-size:13px;line-height:1.45;}
+    .k{color:var(--muted);word-break:break-word;}
+    .v{color:var(--text);word-break:break-word;white-space:pre-wrap;}
+    #tooltip{position:absolute;pointer-events:none;opacity:0;background:rgba(8,10,13,.96);color:white;border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;max-width:360px;font-size:13px;line-height:1.45;box-shadow:var(--shadow);transform:translate(12px,12px);z-index:10;}
+    #legend{position:absolute;left:18px;top:18px;background:rgba(10,12,15,.75);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow);z-index:5;font-size:13px;}
+    .legend-row{display:flex;align-items:center;gap:10px;margin-top:8px;color:var(--muted);}
+    .swatch{width:12px;height:12px;border-radius:50%;border:1px solid rgba(255,255,255,.25);}
+    #hint{margin-top:10px;font-size:12px;color:var(--muted);max-width:300px;line-height:1.4;}
+    svg{width:100%;height:100%;display:block;}
+    .cluster-band{fill:rgba(255,255,255,.02);stroke:rgba(255,255,255,.06);stroke-width:1;}
+    .cluster-label{font-size:12px;fill:rgba(255,255,255,.35);letter-spacing:.06em;text-transform:uppercase;pointer-events:none;}
+    .gridline{stroke:rgba(255,255,255,.06);stroke-width:1;}
+    .axis-label{fill:rgba(255,255,255,.30);font-size:11px;}
+    .link{fill:none;stroke:rgba(255,255,255,.2);stroke-width:1.25;opacity:.85;stroke-linecap:round;}
+    .link.highlight{stroke:#ffffff;stroke-width:2.6;opacity:1;}
+    .link.dim{opacity:.08;}
+    .node{cursor:pointer;}
+    .node circle{stroke:rgba(255,255,255,.35);stroke-width:1.2;filter:drop-shadow(0 6px 12px rgba(0,0,0,.4));}
+    .node text{fill:var(--text);font-size:12px;pointer-events:none;paint-order:stroke;stroke:rgba(11,13,16,.9);stroke-width:4px;stroke-linejoin:round;}
+    .node.highlight circle{stroke:#ffffff;stroke-width:2.2;}
+    .node.selected circle{stroke:var(--accent);stroke-width:2.8;}
+    .node.dim{opacity:.14;}
   </style>
 </head>
 <body>
-  <div id="app">
-    <div id="graph-wrap">
-      <div id="legend">
-        <div style="font-weight:600; color:#fff;">Robotics Evolution</div>
-        <div class="legend-row"><span class="swatch" style="background: var(--existing);"></span> Existing innovation</div>
-        <div class="legend-row"><span class="swatch" style="background: var(--emerging);"></span> Emerging technology</div>
-        <div class="legend-row"><span class="swatch" style="background: var(--category);"></span> Robotics category</div>
-        <div id="hint">Click a node to highlight ancestor and descendant paths. Hover for description. Scroll to zoom.</div>
-      </div>
-      <div id="tooltip"></div>
-      <svg id="svg"></svg>
+<div id="app">
+  <div id="graph-wrap">
+    <div id="legend">
+      <div style="font-weight:600;color:#fff;">Robotics Evolution</div>
+      <div class="legend-row"><span class="swatch" style="background:var(--existing)"></span> Existing innovation</div>
+      <div class="legend-row"><span class="swatch" style="background:var(--emerging)"></span> Emerging technology</div>
+      <div class="legend-row"><span class="swatch" style="background:var(--category)"></span> Robotics category</div>
+      <div id="hint">Click a node to highlight ancestors and descendants. Hover for description. Scroll to zoom.</div>
     </div>
-    <aside id="sidebar">
-      <h2 id="panel-title">Select a node</h2>
-      <div class="sub" id="panel-sub">Metadata will appear here.</div>
-      <div id="panel-content"></div>
-    </aside>
+    <div id="tooltip"></div>
+    <svg id="svg"></svg>
   </div>
+  <aside id="sidebar">
+    <h2 id="panel-title">Select a node</h2>
+    <div class="sub" id="panel-sub">Metadata will appear here.</div>
+    <div id="panel-content"></div>
+  </aside>
+</div>
 
-  <script>
-    const svg = d3.select("#svg");
-    const wrap = document.getElementById("graph-wrap");
-    const tooltip = document.getElementById("tooltip");
-    const sidebarTitle = document.getElementById("panel-title");
-    const sidebarSub = document.getElementById("panel-sub");
-    const sidebarContent = document.getElementById("panel-content");
+<script>
+const svg = d3.select("#svg");
+const wrap = document.getElementById("graph-wrap");
+const tooltip = document.getElementById("tooltip");
+const sidebarTitle = document.getElementById("panel-title");
+const sidebarSub = document.getElementById("panel-sub");
+const sidebarContent = document.getElementById("panel-content");
 
-    const gRoot = svg.append("g");
-    const gBands = gRoot.append("g");
-    const gGrid = gRoot.append("g");
-    const gLinks = gRoot.append("g");
-    const gNodes = gRoot.append("g");
-    const gLabels = gRoot.append("g");
+const gRoot = svg.append("g");
+const gBands = gRoot.append("g");
+const gGrid = gRoot.append("g");
+const gLinks = gRoot.append("g");
+const gNodes = gRoot.append("g");
+const gLabels = gRoot.append("g");
 
-    const zoom = d3.zoom()
-      .scaleExtent([0.35, 2.5])
-      .on("zoom", (event) => gRoot.attr("transform", event.transform));
+svg.call(d3.zoom().scaleExtent([0.35, 2.5]).on("zoom", e => gRoot.attr("transform", e.transform)));
 
-    svg.call(zoom);
+let nodes = [], links = [], nodeById = new Map(), selectedId = null;
 
-    let nodes = [];
-    let links = [];
-    let nodeById = new Map();
-    let selectedId = null;
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m]));}
+function labelOf(d){return d.title || d.name || d.label || d.id || "Untitled";}
+function descOf(d){return d.description || d.desc || d.summary || d.text || "No description available.";}
+function yearOf(d){
+  const vals=[d.year,d.date,d.start_year,d.end_year,d.timestamp,d.timelineorigin,d.maturationtimeline];
+  for(const v of vals){
+    if(typeof v==="number" && isFinite(v)) return v;
+    if(typeof v==="string"){const m=v.match(/(\d{4})/); if(m) return +m[1];}
+  }
+  const ym=d.yearmentions;
+  if(Array.isArray(ym) && ym.length){
+    const ys=ym.map(v => +String(v).match(/(\d{4})/)?.[1]).filter(Number.isFinite);
+    if(ys.length) return d3.min(ys);
+  }
+  return 9999;
+}
+function clusterOf(d){ return d.cluster || d.group || d.category || d.domain || d.field || d.parent || "Other"; }
 
-    function getLabel(d) {
-      return d.title || d.name || d.label || d.id || "Untitled";
-    }
+function extract(raw){
+  if(Array.isArray(raw)) return {nodes: raw, links: []};
+  if(raw && typeof raw === "object"){
+    let ns = raw.nodes || raw.items || raw.entities || raw.data || raw.records || [];
+    let ls = raw.links || raw.edges || raw.relationships || raw.connections || [];
+    if((!ns || !ns.length) && raw.graph){ ns = raw.graph.nodes || []; ls = raw.graph.links || raw.graph.edges || []; }
+    return {nodes: ns, links: ls};
+  }
+  return {nodes:[], links:[]};
+}
+function resolveId(v, nodeIds, labelToId){
+  if(v == null) return null;
+  if(typeof v === "object") v = v.id ?? v.title ?? v.name;
+  const key = String(v);
+  if(nodeIds.has(key)) return key;
+  return labelToId.get(key.toLowerCase()) || null;
+}
+function normalize(raw){
+  const ex = extract(raw);
+  const ns = (ex.nodes || []).map((d,i)=>({
+    ...d,
+    id: String(d.id || d._id || d.key || d.title || d.name || d.label || `node-${i}`),
+    label: labelOf(d),
+    description: descOf(d),
+    yearSort: yearOf(d),
+    cluster: clusterOf(d)
+  }));
+  const nodeIds = new Set(ns.map(n=>String(n.id)));
+  const labelToId = new Map(ns.map(n=>[String(n.label).toLowerCase(), String(n.id)]));
+  const ls = (ex.links || []).map((d,i)=>{
+    const s = resolveId(d.source, nodeIds, labelToId);
+    const t = resolveId(d.target, nodeIds, labelToId);
+    if(!s || !t){ console.warn("Skipping unresolved link", {i,d}); return null; }
+    return { ...d, id: d.id || `link-${i}`, source: s, target: t, relationship: d.relationship || d.type || d.label || "" };
+  }).filter(Boolean);
+  return {nodes: ns, links: ls};
+}
+function buildGraph(ns, ls){
+  const incoming = new Map(ns.map(n=>[n.id,[]]));
+  const outgoing = new Map(ns.map(n=>[n.id,[]]));
+  ls.forEach(l=>{
+    const s = typeof l.source === "object" ? l.source.id : l.source;
+    const t = typeof l.target === "object" ? l.target.id : l.target;
+    if(incoming.has(t)) incoming.get(t).push(s);
+    if(outgoing.has(s)) outgoing.get(s).push(t);
+  });
+  const anc = (id, seen=new Set()) => { const out=new Set(); for(const p of incoming.get(id)||[]){ if(!seen.has(p)){ seen.add(p); out.add(p); anc(p, seen).forEach(v=>out.add(v)); } } return out; };
+  const des = (id, seen=new Set()) => { const out=new Set(); for(const c of outgoing.get(id)||[]){ if(!seen.has(c)){ seen.add(c); out.add(c); des(c, seen).forEach(v=>out.add(v)); } } return out; };
+  return {incoming, outgoing, anc, des};
+}
+function colorFor(d){
+  const t = String(d.node_type || d.type || d.kind || d.stage || d.status || "").toLowerCase();
+  if(t.includes("category") || t.includes("taxonomy") || t.includes("cluster")) return getComputedStyle(document.documentElement).getPropertyValue("--category").trim();
+  if(t.includes("emerg") || t.includes("future") || t.includes("prediction")) return getComputedStyle(document.documentElement).getPropertyValue("--emerging").trim();
+  return getComputedStyle(document.documentElement).getPropertyValue("--existing").trim();
+}
+function updateSidebar(d){
+  sidebarTitle.textContent = d.label;
+  sidebarSub.textContent = `${d.cluster || "Unclustered"} • ${d.yearSort === 9999 ? "Date unknown" : d.yearSort}`;
+  const entries = Object.entries(d).filter(([k,v]) => !["x","y","vx","vy","fx","fy","index","label","description","yearSort"].includes(k) && v !== undefined && v !== null && v !== "");
+  sidebarContent.innerHTML = `
+    <div class="meta-section"><h3>Description</h3><div class="v">${escapeHtml(d.description)}</div></div>
+    <div class="meta-section"><h3>Metadata</h3><div class="kv">
+      ${entries.map(([k,v])=>`<div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(typeof v==="object" ? JSON.stringify(v, null, 2) : v)}</div>`).join("")}
+    </div></div>`;
+}
+function render(raw){
+  const nrm = normalize(raw);
+  nodes = nrm.nodes; links = nrm.links; nodeById = new Map(nodes.map(d=>[d.id,d]));
+  const {incoming, outgoing, anc, des} = buildGraph(nodes, links);
+  nodes.sort((a,b)=>d3.ascending(a.yearSort,b.yearSort) || d3.ascending(a.label,b.label));
 
-    function getDescription(d) {
-      return d.description || d.desc || d.summary || d.text || "No description available.";
-    }
+  const w = wrap.clientWidth, h = wrap.clientHeight;
+  const margin = {top:90,right:40,bottom:55,left:40};
+  const innerW = Math.max(400, w - margin.left - margin.right);
+  const innerH = Math.max(300, h - margin.top - margin.bottom);
+  svg.attr("viewBox",[0,0,w,h]);
+  gRoot.attr("transform",`translate(${margin.left},${margin.top})`);
 
-    function getYearValue(d) {
-      const candidates = [d.year, d.date, d.start_year, d.end_year, d.timestamp, d.timelineorigin, d.maturationtimeline];
-      for (const c of candidates) {
-        if (typeof c === "number" && isFinite(c)) return c;
-        if (typeof c === "string") {
-          const m = c.match(/(\d{4})/);
-          if (m) return +m[1];
-        }
-      }
-      const ym = d.yearmentions;
-      if (Array.isArray(ym) && ym.length) {
-        const nums = ym.map(v => +String(v).match(/(\d{4})/)?.[1]).filter(Number.isFinite);
-        if (nums.length) return d3.min(nums);
-      }
-      return 9999;
-    }
+  let extent = d3.extent(nodes,d=>d.yearSort);
+  if(!isFinite(extent[0]) || !isFinite(extent[1])) extent = [1900, 2035];
+  const xScale = d3.scaleLinear().domain(extent).range([90, innerW - 100]);
 
-    function clusterKey(d) {
-      return d.cluster || d.group || d.category || d.domain || d.field || d.parent || "Other";
-    }
+  const clusters = Array.from(d3.group(nodes, clusterOf), ([key, vals]) => ({key, vals}));
+  const yScale = d3.scaleBand().domain(clusters.map(d=>d.key)).range([20, innerH - 30]).padding(0.28);
 
-    function escapeHtml(str) {
-      return String(str).replace(/[&<>"']/g, s => ({
-        "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
-      }[s]));
-    }
+  nodes.forEach(n => { n.x = xScale(n.yearSort); n.y = yScale(n.cluster) + yScale.bandwidth()/2; });
 
-    function resolveNodeId(value, nodeIds, labelToId) {
-      if (value == null) return null;
-      if (typeof value === "object") {
-        if (value.id != null) value = value.id;
-        else if (value.title != null) value = value.title;
-        else if (value.name != null) value = value.name;
-        else return null;
-      }
-      const key = String(value);
-      if (nodeIds.has(key)) return key;
-      const byLabel = labelToId.get(key.toLowerCase());
-      if (byLabel) return byLabel;
-      return null;
-    }
+  gBands.selectAll("*").remove();
+  gGrid.selectAll("*").remove();
+  gLinks.selectAll("*").remove();
+  gNodes.selectAll("*").remove();
+  gLabels.selectAll("*").remove();
 
-    function extractArrays(raw) {
-      if (Array.isArray(raw)) {
-        if (raw.length && (raw[0].source !== undefined || raw[0].target !== undefined)) {
-          return { nodes: [], links: raw };
-        }
-        return { nodes: raw, links: [] };
-      }
-      if (raw && typeof raw === "object") {
-        let nodes = raw.nodes || raw.items || raw.entities || raw.data || raw.records || [];
-        let links = raw.links || raw.edges || raw.relationships || raw.connections || [];
-        if ((!nodes || !nodes.length) && raw.graph) {
-          nodes = raw.graph.nodes || [];
-          links = raw.graph.links || raw.graph.edges || [];
-        }
-        return { nodes, links };
-      }
-      return { nodes: [], links: [] };
-    }
+  gBands.selectAll("rect").data(clusters).enter().append("rect")
+    .attr("class","cluster-band").attr("x",0).attr("y",d=>yScale(d.key)-12)
+    .attr("width",innerW).attr("height",yScale.bandwidth()+24).attr("rx",16).attr("ry",16);
 
-    function normalize(raw) {
-      const extracted = extractArrays(raw);
-      let rawNodes = extracted.nodes || [];
-      let rawLinks = extracted.links || [];
+  gLabels.selectAll("text").data(clusters).enter().append("text")
+    .attr("class","cluster-label").attr("x",10).attr("y",d=>yScale(d.key)-16).text(d=>d.key);
 
-      rawNodes = rawNodes.map((d, i) => ({
-        ...d,
-        id: String(d.id || d._id || d.key || d.title || d.name || d.label || `node-${i}`),
-        label: getLabel(d),
-        description: getDescription(d),
-        yearSort: getYearValue(d),
-        cluster: clusterKey(d)
-      }));
+  const ticks = xScale.ticks(Math.min(12, Math.max(6, nodes.length / 8)));
+  gGrid.selectAll("line").data(ticks).enter().append("line")
+    .attr("class","gridline").attr("x1",d=>xScale(d)).attr("x2",d=>xScale(d)).attr("y1",-8).attr("y2",innerH+10);
+  gGrid.selectAll("text").data(ticks).enter().append("text")
+    .attr("class","axis-label").attr("x",d=>xScale(d)).attr("y",innerH+32).attr("text-anchor","middle").text(d=>d);
 
-      const nodeIds = new Set(rawNodes.map(n => String(n.id)));
-      const labelToId = new Map(rawNodes.map(n => [String(n.label).toLowerCase(), String(n.id)]));
+  const curve = d => {
+    const s = nodeById.get(typeof d.source === "object" ? d.source.id : d.source);
+    const t = nodeById.get(typeof d.target === "object" ? d.target.id : d.target);
+    if(!s || !t) return "";
+    const dx = Math.max(22, Math.abs(t.x - s.x) * 0.45);
+    return `M${s.x},${s.y} C${s.x + dx},${s.y} ${t.x - dx},${t.y} ${t.x},${t.y}`;
+  };
 
-      const resolvedLinks = rawLinks.map((d, i) => {
-        const sourceRaw = typeof d.source === "object" ? d.source.id || d.source.title || d.source.name : d.source;
-        const targetRaw = typeof d.target === "object" ? d.target.id || d.target.title || d.target.name : d.target;
-        const source = resolveNodeId(sourceRaw, nodeIds, labelToId);
-        const target = resolveNodeId(targetRaw, nodeIds, labelToId);
+  const linkSel = gLinks.selectAll("path").data(links).enter().append("path").attr("class","link").attr("d",curve);
 
-        if (!source || !target) {
-          console.warn("Skipping unresolved link", { index: i, sourceRaw, targetRaw, link: d });
-          return null;
-        }
+  const nodeSel = gNodes.selectAll("g").data(nodes).enter().append("g")
+    .attr("class","node").attr("transform",d=>`translate(${d.x},${d.y})`)
+    .on("mousemove",(event,d)=>{ tooltip.style.opacity=1; tooltip.style.left=event.offsetX+"px"; tooltip.style.top=event.offsetY+"px"; tooltip.innerHTML=`<strong>${escapeHtml(d.label)}</strong><br>${escapeHtml(d.description)}`; })
+    .on("mouseleave",()=>{ tooltip.style.opacity=0; })
+    .on("click",(event,d)=>{ event.stopPropagation(); selectedId=d.id; updateHighlights(); updateSidebar(d); });
 
-        return {
-          ...d,
-          id: d.id || `link-${i}`,
-          source,
-          target,
-          relationship: d.relationship || d.type || d.label || ""
-        };
-      }).filter(Boolean);
+  nodeSel.append("circle")
+    .attr("r",d => 7.5 + Math.min(9, ((incoming.get(d.id)?.length||0)+(outgoing.get(d.id)?.length||0)) * 0.55))
+    .attr("fill",d=>colorFor(d));
 
-      return { nodes: rawNodes, links: resolvedLinks };
-    }
+  nodeSel.append("text").attr("x",12).attr("y",4).text(d=>d.label);
 
-    function deriveGraph(nodes, links) {
-      const incoming = new Map(nodes.map(n => [n.id, []]));
-      const outgoing = new Map(nodes.map(n => [n.id, []]));
+  function updateHighlights(){
+    const selected = selectedId ? nodeById.get(selectedId) : null;
+    const A = selected ? anc(selected.id) : new Set();
+    const D = selected ? des(selected.id) : new Set();
+    const active = new Set([selectedId, ...A, ...D].filter(Boolean));
 
-      links.forEach(l => {
-        const s = typeof l.source === "object" ? l.source.id : l.source;
-        const t = typeof l.target === "object" ? l.target.id : l.target;
-        if (incoming.has(t)) incoming.get(t).push(s);
-        if (outgoing.has(s)) outgoing.get(s).push(t);
-      });
+    nodeSel.classed("highlight", d=>selected && active.has(d.id))
+      .classed("selected", d=>selected && d.id===selected.id)
+      .classed("dim", d=>selected && !active.has(d.id));
 
-      function ancestors(id, seen = new Set()) {
-        const out = new Set();
-        for (const p of incoming.get(id) || []) {
-          if (!seen.has(p)) {
-            seen.add(p);
-            out.add(p);
-            ancestors(p, seen).forEach(v => out.add(v));
-          }
-        }
-        return out;
-      }
+    linkSel.classed("highlight", d=>{
+      if(!selected) return false;
+      const s = typeof d.source === "object" ? d.source.id : d.source;
+      const t = typeof d.target === "object" ? d.target.id : d.target;
+      return active.has(s) && active.has(t);
+    }).classed("dim", d=>{
+      if(!selected) return false;
+      const s = typeof d.source === "object" ? d.source.id : d.source;
+      const t = typeof d.target === "object" ? d.target.id : d.target;
+      return !(active.has(s) && active.has(t));
+    });
+  }
 
-      function descendants(id, seen = new Set()) {
-        const out = new Set();
-        for (const c of outgoing.get(id) || []) {
-          if (!seen.has(c)) {
-            seen.add(c);
-            out.add(c);
-            descendants(c, seen).forEach(v => out.add(v));
-          }
-        }
-        return out;
-      }
+  updateHighlights();
 
-      return { incoming, outgoing, ancestors, descendants };
-    }
+  svg.on("click",()=>{ selectedId=null; sidebarTitle.textContent="Select a node"; sidebarSub.textContent="Metadata will appear here."; sidebarContent.innerHTML=""; updateHighlights(); });
+  window.onresize = () => render(raw);
+}
 
-    function colorFor(d) {
-      const t = String(d.node_type || d.type || d.kind || d.stage || d.status || "").toLowerCase();
-      const emerg = t.includes("emerg") || t.includes("future") || t.includes("prediction");
-      const cat = t.includes("category") || t.includes("taxonomy") || t.includes("cluster");
-      if (cat) return getComputedStyle(document.documentElement).getPropertyValue("--category").trim();
-      if (emerg) return getComputedStyle(document.documentElement).getPropertyValue("--emerging").trim();
-      return getComputedStyle(document.documentElement).getPropertyValue("--existing").trim();
-    }
-
-    function updateSidebar(d) {
-      sidebarTitle.textContent = d.label;
-      sidebarSub.textContent = `${d.cluster || "Unclustered"} • ${d.yearSort === 9999 ? "Date unknown" : d.yearSort}`;
-
-      const entries = Object.entries(d).filter(([k, v]) => {
-        return !["x","y","vx","vy","fx","fy","index","label","description","yearSort"].includes(k) && v !== undefined && v !== null && v !== "";
-      });
-
-      sidebarContent.innerHTML = `
-        <div class="meta-section">
-          <h3>Description</h3>
-          <div class="v">${escapeHtml(d.description)}</div>
-        </div>
-        <div class="meta-section">
-          <h3>Metadata</h3>
-          <div class="kv">
-            ${entries.map(([k, v]) => `<div class="k">${escapeHtml(k)}</div><div class="v">${escapeHtml(typeof v === "object" ? JSON.stringify(v, null, 2) : v)}</div>`).join("")}
-          </div>
-        </div>
-      `;
-    }
-
-    function render(raw) {
-      const normalized = normalize(raw);
-      nodes = normalized.nodes;
-      links = normalized.links;
-      nodeById = new Map(nodes.map(d => [d.id, d]));
-
-      const { incoming, outgoing, ancestors, descendants } = deriveGraph(nodes, links);
-
-      nodes.sort((a, b) => d3.ascending(a.yearSort, b.yearSort) || d3.ascending(a.label, b.label));
-
-      const w = wrap.clientWidth;
-      const h = wrap.clientHeight;
-      const margin = { top: 90, right: 40, bottom: 55, left: 40 };
-      const innerW = Math.max(400, w - margin.left - margin.right);
-      const innerH = Math.max(300, h - margin.top - margin.bottom);
-
-      svg.attr("viewBox", [0, 0, w, h]);
-      gRoot.attr("transform", `translate(${margin.left},${margin.top})`);
-
-      const extent = d3.extent(nodes, d => d.yearSort);
-      if (!isFinite(extent[0]) || !isFinite(extent[1])) {
-        extent[0] = 1900;
-        extent[1] = 2035;
-      }
-
-      const xScale = d3.scaleLinear()
-        .domain(extent)
-        .range([90, innerW - 100]);
-
-      const clusters = Array.from(d3.group(nodes, clusterKey), ([key, vals]) => ({ key, vals }));
-      const yScale = d3.scaleBand()
-        .domain(clusters.map(d => d.key))
-        .range([20, innerH - 30])
-        .padding(0.28);
-
-      nodes.forEach(n => {
-        n.x = xScale(n.yearSort);
-        n.y = yScale(n.cluster) + yScale.bandwidth() / 2;
-      });
-
-      const sim = d3.forceSimulation(nodes)
-        .force("x", d3.forceX(d => xScale(d.yearSort)).strength(0.85))
-        .force("y", d3.forceY(d => yScale(d.cluster) + yScale.bandwidth() / 2).strength(0.8))
-        .force("collide", d3.forceCollide(18))
-        .force("charge", d3.forceManyBody().strength(-16))
-        .force("link", d3.forceLink(links).id(d => d.id).distance(66).strength(0.12))
-        .stop();
-
-      for (let i = 0; i < 260; i++) sim.tick();
-
-      gBands.selectAll("*").remove();
-      gGrid.selectAll("*").remove();
-      gLinks.selectAll("*").remove();
-      gNodes.selectAll("*").remove();
-      gLabels.selectAll("*").remove();
-
-      gBands.selectAll("rect")
-        .data(clusters)
-        .enter()
-        .append("rect")
-        .attr("class", "cluster-band")
-        .attr("x", 0)
-        .attr("y", d => yScale(d.key) - 12)
-        .attr("width", innerW)
-        .attr("height", yScale.bandwidth() + 24)
-        .attr("rx", 16)
-        .attr("ry", 16);
-
-      gBands.selectAll("text")
-        .data(clusters)
-        .enter()
-        .append("text")
-        .attr("class", "cluster-label")
-        .attr("x", 10)
-        .attr("y", d => yScale(d.key) - 16)
-        .text(d => d.key);
-
-      const ticks = xScale.ticks(Math.min(12, nodes.length));
-      gGrid.selectAll("line")
-        .data(ticks)
-        .enter()
-        .append("line")
-        .attr("class", "gridline")
-        .attr("x1", d => xScale(d))
-        .attr("x2", d => xScale(d))
-        .attr("y1", -8)
-        .attr("y2", innerH + 10);
-
-      gGrid.selectAll("text")
-        .data(ticks)
-        .enter()
-        .append("text")
-        .attr("class", "axis-label")
-        .attr("x", d => xScale(d))
-        .attr("y", innerH + 32)
-        .attr("text-anchor", "middle")
-        .text(d => d);
-
-      const linkSel = gLinks.selectAll("path")
-        .data(links)
-        .enter()
-        .append("path")
-        .attr("class", "link")
-        .attr("d", d => {
-          const s = nodeById.get(typeof d.source === "object" ? d.source.id : d.source);
-          const t = nodeById.get(typeof d.target === "object" ? d.target.id : d.target);
-          if (!s || !t) return "";
-          const dx = Math.max(22, Math.abs(t.x - s.x) * 0.45);
-          return `M${s.x},${s.y} C${s.x + dx},${s.y} ${t.x - dx},${t.y} ${t.x},${t.y}`;
-        });
-
-      const nodeSel = gNodes.selectAll("g")
-        .data(nodes)
-        .enter()
-        .append("g")
-        .attr("class", "node")
-        .attr("transform", d => `translate(${d.x},${d.y})`)
-        .on("mousemove", (event, d) => {
-          tooltip.style.opacity = 1;
-          tooltip.style.left = event.offsetX + "px";
-          tooltip.style.top = event.offsetY + "px";
-          tooltip.innerHTML = `<strong>${escapeHtml(d.label)}</strong><br>${escapeHtml(d.description)}`;
-        })
-        .on("mouseleave", () => {
-          tooltip.style.opacity = 0;
-        })
-        .on("click", (event, d) => {
-          event.stopPropagation();
-          selectedId = d.id;
-          updateHighlights();
-          updateSidebar(d);
-        })
-        .call(d3.drag()
-          .on("start", (event, d) => {
-            if (!event.active) sim.alphaTarget(0.2).restart();
-            d.fx = d.x;
-            d.fy = d.y;
-          })
-          .on("drag", (event, d) => {
-            d.fx = event.x;
-            d.fy = event.y;
-            d.x = event.x;
-            d.y = event.y;
-            nodeSel.attr("transform", n => `translate(${n.x},${n.y})`);
-            linkSel.attr("d", l => {
-              const s = nodeById.get(typeof l.source === "object" ? l.source.id : l.source);
-              const t = nodeById.get(typeof l.target === "object" ? l.target.id : l.target);
-              if (!s || !t) return "";
-              const dx = Math.max(22, Math.abs(t.x - s.x) * 0.45);
-              return `M${s.x},${s.y} C${s.x + dx},${s.y} ${t.x - dx},${t.y} ${t.x},${t.y}`;
-            });
-          })
-          .on("end", (event, d) => {
-            if (!event.active) sim.alphaTarget(0);
-            d.fx = null;
-            d.fy = null;
-          })
-        );
-
-      nodeSel.append("circle")
-        .attr("r", d => {
-          const degree = (incoming.get(d.id)?.length || 0) + (outgoing.get(d.id)?.length || 0);
-          return 7.5 + Math.min(9, degree * 0.55);
-        })
-        .attr("fill", d => colorFor(d));
-
-      nodeSel.append("text")
-        .attr("x", 12)
-        .attr("y", 4)
-        .text(d => d.label);
-
-      function updateHighlights() {
-        const selected = selectedId ? nodeById.get(selectedId) : null;
-        const anc = selected ? ancestors(selected.id) : new Set();
-        const des = selected ? descendants(selected.id) : new Set();
-        const activeNodes = new Set([selectedId, ...anc, ...des].filter(Boolean));
-
-        nodeSel
-          .classed("highlight", d => selected && activeNodes.has(d.id))
-          .classed("selected", d => selected && d.id === selected.id)
-          .classed("dim", d => selected && !activeNodes.has(d.id));
-
-        linkSel
-          .classed("highlight", d => {
-            if (!selected) return false;
-            const s = typeof d.source === "object" ? d.source.id : d.source;
-            const t = typeof d.target === "object" ? d.target.id : d.target;
-            return activeNodes.has(s) && activeNodes.has(t);
-          })
-          .classed("dim", d => {
-            if (!selected) return false;
-            const s = typeof d.source === "object" ? d.source.id : d.source;
-            const t = typeof d.target === "object" ? d.target.id : d.target;
-            return !(activeNodes.has(s) && activeNodes.has(t));
-          });
-      }
-
-      updateHighlights();
-
-      svg.on("click", () => {
-        selectedId = null;
-        sidebarTitle.textContent = "Select a node";
-        sidebarSub.textContent = "Metadata will appear here.";
-        sidebarContent.innerHTML = "";
-        updateHighlights();
-      });
-
-      window.addEventListener("resize", () => {
-        render(raw);
-      }, { once: true });
-    }
-
-    fetch("robotics_knowledge_base_with_predictions.json")
-      .then(r => {
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        return r.json();
-      })
-      .then(data => render(data))
-      .catch(err => {
-        sidebarTitle.textContent = "Could not load JSON";
-        sidebarSub.textContent = "Check file path and browser permissions.";
-        sidebarContent.innerHTML = `<div class="meta-section"><h3>Error</h3><div class="v">${escapeHtml(String(err))}</div></div>`;
-        console.error(err);
-      });
-  </script>
+fetch("robotics_knowledge_base_with_predictions.json")
+  .then(r => { if(!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+  .then(data => render(data))
+  .catch(err => {
+    sidebarTitle.textContent = "Could not load JSON";
+    sidebarSub.textContent = "Check file path and browser permissions.";
+    sidebarContent.innerHTML = `<div class="meta-section"><h3>Error</h3><div class="v">${escapeHtml(String(err))}</div></div>`;
+    console.error(err);
+  });
+</script>
 </body>
 </html>
