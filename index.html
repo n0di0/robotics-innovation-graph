@@ -421,17 +421,16 @@
 
         async function loadData() {
             try {
-                // Try to load from data.json first
                 const response = await fetch('robotics_data.json');
-                if (response.ok) {
-                    ROBOTICS_DATA = await response.json();
-                    initializeVisualization();
-                } else {
-                    throw new Error('No data file found');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+                ROBOTICS_DATA = await response.json();
+                initializeVisualization();
             } catch (error) {
-                console.error('Could not load from separate file, please ensure robotics_data.json is in the same directory');
-                document.getElementById('loading').innerHTML = '<div style="color: #c0c0c0;">Please place robotics_data.json in the same directory as this HTML file</div>';
+                console.error('Error loading data:', error);
+                console.log('Tried to fetch: robotics_data.json from current directory');
+                document.getElementById('loading').innerHTML = '<div style="color: #c0c0c0; padding: 20px;">Error: Could not load robotics_data.json<br><br>Make sure both files are in the same folder:<br>• robotics_timeline.html<br>• robotics_data.json<br><br>Check browser console for details.</div>';
             }
         }
 
